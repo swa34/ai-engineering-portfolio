@@ -121,8 +121,10 @@ Limitations and next gate: no application has been built or tested, and document
 ## Phase 3 PR preparation
 
 - [x] Recheck document examples, local links, expected evaluation coverage, and patch hygiene.
-- [ ] Verify the exact staged file inventory and commit the Phase 3 documentation.
-- [ ] Push `swa34/phase-3-technical-specification` and open its review PR against `main`.
-- [ ] Verify the remote branch and PR point to the committed specification.
+- [x] Verify the exact staged file inventory and commit the Phase 3 documentation.
+- [x] Push `swa34/phase-3-technical-specification` and open its review PR against `main`.
+- [x] Verify the remote branch and PR point to the committed specification.
 
 The PR will describe the proposed architecture, API and storage contracts, constrained prose validation, review/approval behavior, security and accessibility requirements, and 44 unexecuted evaluation cases. Its validation record is limited to document checks and independent specification review. Local agent memory and configuration stay excluded from Git.
+
+2026-09-12: Committed the specification as `efa7ca0`, pushed the Phase 3 branch, and opened [PR #2](https://github.com/swa34/ai-engineering-portfolio/pull/2) against `main`. GitHub readback confirmed the PR is open for review, references that specification commit, and includes exactly the eight intended documentation files. The staged inventory excludes local agent files, the limited credential-pattern scan found no matches, and the independent scope review found no publication blocker. Merging and implementation remain pending approval.
