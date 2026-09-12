@@ -1,0 +1,9 @@
+# Local agent configuration and session memory
+.Codex/
+.codex/
+.agents/
+
+# Credentials; sanitized examples may be tracked
+.env
+.env.*
+!.env.example
