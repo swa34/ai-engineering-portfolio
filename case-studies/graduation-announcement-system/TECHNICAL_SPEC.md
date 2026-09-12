@@ -42,7 +42,7 @@ Use one origin for UI and `/api/v1`; a development proxy routes API requests. Bi
 
 ## 3. Source input and fictional fixtures
 
-All schemas are strict: reject unknown keys, wrong types, non-finite or fractional integers, and implicit string/boolean coercion. JSON byte limits apply before parsing. String length means Unicode code points. Input strings are trimmed and Unicode NFC-normalized before source validation and freezing; control characters including line breaks are rejected in single-line source fields. Do not silently truncate. Array items must be unique after normalization. Empty optional strings are represented as `null`, not empty strings.
+All schemas are strict: reject unknown keys, wrong types, non-finite or fractional integers, and implicit string/boolean coercion. The [shared resource budget](SECURITY_DESIGN.md#http-and-resource-controls) defines JSON byte limits, which apply before parsing. String length means Unicode code points. Input strings are trimmed and Unicode NFC-normalized before source validation and freezing; control characters including line breaks are rejected in single-line source fields. Do not silently truncate. Array items must be unique after normalization. Empty optional strings are represented as `null`, not empty strings.
 
 A Draft may contain incomplete fields. Submission requires this complete `SourceInput`:
 
@@ -59,9 +59,13 @@ A Draft may contain incomplete fields. Submission requires this complete `Source
 | `future_plan` | `null` or a string of 1–160 characters; no inferred destination or employer. |
 | `preferences` | Strict object: `tone` = `professional` or `warm`; `length` = `brief` or `standard`; `channel` = `web` or `social`. Both versions are generated; channel selects the initially shown preview tab. |
 | `consent` | Boolean; must be `true` to submit. This is fictional demo permission, not legally verified consent. |
-| `fictional_data_acknowledged` | Boolean; must be `true` to save or submit entered data. |
+| `fictional_data_acknowledged` | Boolean; must be `true` for a client-submitted draft save or submission. Server-created draft defaults are defined below. |
 
-Draft updates accept `null` for missing required fact fields, preferences, and consent; otherwise the same bounds, key allowlist, and sensitive-content screening apply. The initial empty Draft is server-created. A draft save replaces its entire editable `SourceInput` object, so omitted fields are an error. Submission freezes the validated normalized source, preferences, actor, server timestamp, and source-schema version. Neither a provider nor a reviewer can change that snapshot.
+`DraftSource` is a separate strict shape with the same required keys as `SourceInput`. Only `graduate_name`, `degree`, `program`, `graduation_year`, and `consent` may additionally be `null`. The entire `preferences` object may be `null`; when present, all three members are required and non-null with the submitted enum values. `institution` retains its fixed literal, honors/activities remain arrays (never null), quote/future_plan retain their existing nullable types, and `fictional_data_acknowledged` remains a non-null Boolean. Non-null values use the same bounds, normalization, and screening as `SourceInput`. Omitted keys are errors; a draft save replaces the complete `DraftSource` object.
+
+The server creates an initial Draft with the fixed institution, empty honors/activities, null graduate_name/degree/program/graduation_year/preferences/quote/future_plan/consent, and fictional acknowledgment false. Server-created correction/restart drafts may contain copied source content with consent and fictional acknowledgment both false. This is an explicit stored-draft exception: acknowledgment is an action guard on client saves and submission, not a database invariant that all stored content must have acknowledgment true. The first owner save must set fictional acknowledgment true; consent may stay false or null until submission. The UI shows copied content with both acknowledgments unchecked.
+
+Submission revalidates the stored draft against complete `SourceInput`, requires both acknowledgments true, and freezes the normalized source, preferences, actor, server timestamp, and source-schema version. Neither a provider nor a reviewer can change that snapshot.
 
 Example fictional source, to become fixture `complete-standard`:
 
@@ -95,7 +99,7 @@ Every successful response must satisfy this strict `CandidateOutput` shape. Requ
 | Field | Type and bounds |
 | --- | --- |
 | `schema_version` | Literal `1` (string). |
-| `template_id` | `professional-v1` or `warm-v1`; must match source tone. |
+| `template_id` | Enum: `professional-v1` or `warm-v1`. Source-tone correspondence is checked during semantic validation, not schema parsing. |
 | `headline` | String, 1–180 characters. |
 | `announcement_body` | String, 1–3000 characters. |
 | `short_social_version` | String, 1–500 characters. |
@@ -155,7 +159,7 @@ The same canonical equality checks apply to all three prose fields after human e
 
 Server findings use `{code, severity, path, message}`. `severity` is `blocking` or `advisory`; paths identify fields and messages use safe application-owned wording. A validation run stores revision ID, snapshot ID, validator version, content digest, timestamp, status (`pass` or `fail`), and findings. `pass` requires zero blocking findings. Untrusted provider text appears only in explicitly labeled advisory panels.
 
-Required blocking codes include `FACT_MISMATCH`, `NARRATIVE_MISMATCH`, `TONE_MISMATCH`, `LENGTH_EXCEEDED`, `PROVIDER_CONCERN`, `MISSING_INFORMATION`, `SENSITIVE_CONTENT`, and `INSTRUCTION_LIKE_CONTENT`. Optional omissions in brief mode produce an informational UI explanation, not a missing-information failure. Schema violations are request/attempt errors, not approvable findings. Validation runs are immutable; a new revision always gets a new run.
+Required blocking codes include `FACT_MISMATCH`, `NARRATIVE_MISMATCH`, `TONE_MISMATCH`, `PROVIDER_CONCERN`, `MISSING_INFORMATION`, `SENSITIVE_CONTENT`, and `INSTRUCTION_LIKE_CONTENT`. Optional omissions in brief mode produce an informational UI explanation, not a missing-information failure. Known template IDs that disagree with source tone produce a retained `TONE_MISMATCH` finding; unknown IDs fail schema parsing. Field-length violations also fail schema parsing and create request/attempt errors, not revision findings. There is no separate editorial length limit or `LENGTH_EXCEEDED` revision finding. Validation runs are immutable; a new revision always gets a new run.
 
 Approval reruns the currently supported validator over the selected immutable revision. If the validator has changed, persist the new run; if it fails, retain NeedsReview and return `422 VALIDATION_FAILED`. Only a passing run from the current validator version can be bound to approval. Already approved artifacts retain their recorded validator version; they are not silently rewritten or recertified after an upgrade.
 
@@ -176,7 +180,7 @@ IDs are server-generated UUIDs; timestamps are UTC strings set by the server. JS
 | `review_decisions` | ID, cycle/revision IDs, reviewer actor, decision, screened reason (null for approval), approval ID if approved, timestamp. Immutable; referenced by the audit event. |
 | `exports` | ID, approval ID, template version, exact UTF-8 plain-text artifact, digest, creator, timestamp. Unique approval/template-version pair. Immutable. |
 | `audit_events` | ID, request/cycle IDs as applicable, event type, actor or system identity, related object IDs, safe code, timestamp. Append-only application interface; no content copies. |
-| `mutation_receipts` | Session ID, idempotency key, method/path, input digest, safe outcome reference and HTTP status; unique session/key pair. Retained until dataset reset. |
+| `mutation_receipts` | Session ID, idempotency key, method/path, input digest, safe outcome reference and HTTP status; unique session/key pair. Replay is available only while the issuing session is valid. Rows remain until dataset reset for historical uniqueness; retention does not extend session lifetime or transfer keys to a new session. |
 
 Every cycle's pointers must refer to rows from its own request, cycle, and snapshot as appropriate. Approved/ReadyForPublication must have an approval for the current revision. Failed generation must not change the current revision pointer. Earlier revisions stay visible even when a later attempt fails; they cannot be approved while the cycle is Submitted/Generating. Submission, edits, decisions, attempt completion, preparation, withdrawal, and cycle creation each persist their domain changes and audit event together. If audit insertion fails, roll back the domain changes.
 
@@ -207,7 +211,7 @@ The UI label “Ready for publication” means ready for local handoff only. No 
 New cycles, all under the same request:
 
 - `regenerate`: reviewer only, predecessor Approved or ReadyForPublication, effective consent required. Create a separate Submitted cycle with the existing snapshot and empty revision pointer. Preserve the predecessor and require an explicit generation action.
-- `correct_source`: request owner only, predecessor in any non-Generating status. Copy its source/draft into a new Draft, set consent and fictional acknowledgment to false, and require a new submission/snapshot. The prior cycle remains unchanged; correction alone is not consent withdrawal or revocation of earlier approval.
+- `correct_source`: request owner only, predecessor in any non-Generating status. Copy its source/draft into a server-created `DraftSource`, set consent and fictional acknowledgment to false under the stored-draft exception in section 3, and require a new submission/snapshot. The prior cycle remains unchanged; correction alone is not consent withdrawal or revocation of earlier approval.
 - `restart_after_rejection`: request owner only, predecessor Rejected. Create a Draft as above. Rejected stays terminal.
 
 Creation checks the predecessor's expected version and commits its audit event and receipt atomically; creation does not change the predecessor status or revision. Multiple intentionally created child cycles are allowed and displayed separately. Duplicate HTTP delivery with the same idempotency key must not create extra cycles.
@@ -218,7 +222,7 @@ Source withdrawal can occur in any state: a request owner creates the withdrawal
 
 All paths below are relative to `/api/v1`. Bodies are JSON unless serving an artifact. No endpoint accepts actor IDs, validation results, or authoritative status from the client. Reads return only records the session may access. List responses use opaque cursors, default 20 items, maximum 50, sorted by creation time then ID.
 
-Every authenticated mutation requires `X-CSRF-Token` and `Idempotency-Key` (a UUID). Every mutation of an existing cycle, including child-cycle creation and preparation, includes integer `expected_cycle_version`; review mutations also include `expected_revision_id`. Source withdrawal instead uses immutable `snapshot_id`, with a unique database constraint. Reusing a key with the same session/method/path/payload returns the original outcome after current access and consent checks; reusing it with different input returns `409 IDEMPOTENCY_CONFLICT`. A current withdrawn-consent or invalid-session denial takes precedence over replay. Concurrent duplicate keys must resolve to one receipt and one effect. A `503` before commit has no receipt and can be retried with the same key.
+Every authenticated mutation requires `X-CSRF-Token` and `Idempotency-Key` (a UUID). Every mutation of an existing cycle, including child-cycle creation and preparation, includes integer `expected_cycle_version`; review mutations also include `expected_revision_id`. Source withdrawal instead uses immutable `snapshot_id`, with a unique database constraint. Reusing a key with the same session/method/path/payload returns the original outcome after current access and consent checks; reusing it with different input returns `409 IDEMPOTENCY_CONFLICT`. Replay is scoped to the issuing session while it remains valid. Expiration, restart, logout, replacement, or reset makes that session ineligible for replay; a retry with an invalidated session receives `401`. Retained receipts are not reused by a newly created session. A current withdrawn-consent or invalid-session denial takes precedence over replay. Concurrent duplicate keys must resolve to one receipt and one effect. A `503` before commit has no receipt and can be retried with the same key.
 
 | Method and path | Actor and request | Success contract |
 | --- | --- | --- |
@@ -230,8 +234,8 @@ Every authenticated mutation requires `X-CSRF-Token` and `Idempotency-Key` (a UU
 | `GET /requests/:requestId` | Owner or reviewer. | `200`; request, accessible cycles and snapshot withdrawal flags. |
 | `GET /cycles/:cycleId` | Owner or reviewer. | `200`; cycle/version, snapshot, current revision and latest findings, approval reference, safe active-attempt status. |
 | `GET /cycles/:cycleId/history` | Owner or reviewer. | `200`; paginated revisions, decisions, safe attempt summaries and events in chronological order. |
-| `PUT /cycles/:cycleId/draft` | Owner; `{expected_cycle_version, source}`. | `200`; updated Draft/version. |
-| `POST /cycles/:cycleId/submit` | Owner; `{expected_cycle_version}`. | `200`; Submitted cycle and snapshot reference. |
+| `PUT /cycles/:cycleId/draft` | Owner; `{expected_cycle_version, source}` where `source` is complete `DraftSource`; require fictional acknowledgment true. | `200`; updated Draft/version. |
+| `POST /cycles/:cycleId/submit` | Owner; `{expected_cycle_version}`; revalidate stored draft as `SourceInput` with both acknowledgments true. | `200`; Submitted cycle and snapshot reference. |
 | `POST /cycles/:cycleId/generations` | Owner or reviewer; `{expected_cycle_version}`. | `202`; `{attempt_id, cycle_id, status: "Generating", cycle_version}` and Location for attempt polling. |
 | `GET /attempts/:attemptId` | Owner or reviewer of its cycle. | `200`; state, safe failure code, cycle version and resulting revision ID if successful. |
 | `POST /cycles/:cycleId/revisions` | Reviewer; `{expected_cycle_version, expected_revision_id, content}` with complete `CandidateOutput`. | `201`; new human revision, findings, updated cycle/version. |
@@ -249,13 +253,13 @@ Errors use `{error: {code, message, fields?, request_id}}`, with application-own
 
 ## 9. Generation lifecycle and recovery
 
-One running attempt is allowed per cycle and at most two globally. A start transaction reserves capacity, checks consent/version, changes the cycle to Generating, and records the attempt/event/receipt. Return `202` after commit; the worker runs outside the transaction. Clients poll the attempt once per second while visible, back off to five seconds while hidden, and stop on completion, navigation, or logout. Reloading a page recovers state from the API.
+One running attempt is allowed per cycle and at most two globally. A start transaction reserves capacity, checks consent/version, changes the cycle to Generating, and records the attempt/event/receipt. Return `202` after commit; the worker runs outside the transaction. Clients use the polling cadence and read allowance in the shared resource budget, share one poller per attempt within a page, and stop on completion, navigation, or logout. A read `429` pauses polling and other automatic reads for at least `Retry-After`; retry only after that delay without changing attempt state. Reloading a page recovers state from the API.
 
-A mock attempt has a 10-second server deadline and a maximum response size of 16 KiB. There are no automatic retries. Permit at most three generation starts per cycle in a rolling 60 seconds, counting failed attempts; after the window elapses an explicit retry is allowed. Global saturation returns `429 GENERATION_CAPACITY` without starting an attempt. Successful normal mock behavior is deterministic for the same snapshot/contract; requesting changes demonstrates the review loop, not model learning from reviewer notes.
+A mock attempt has a 10-second server deadline and the provider-response byte cap from the shared resource budget. Both direct UTF-8 and Unicode-escaped compact JSON at the specified field maxima must fit; extra whitespace/padding remains subject to the wire-byte cap. There are no automatic retries. Permit at most three generation starts per cycle in a rolling 60 seconds, counting failed attempts; after the window elapses an explicit retry is allowed. Global saturation returns `429 GENERATION_CAPACITY` without starting an attempt. Successful normal mock behavior is deterministic for the same snapshot/contract; requesting changes demonstrates the review loop, not model learning from reviewer notes.
 
 Completion starts another short transaction. Accept output only if the attempt is still running, remains the cycle's active attempt, matches its snapshot and reserved generation version, has not reached the deadline, and effective consent remains true. Atomically save the revision, validation, completion event, and NeedsReview state. Timeout/malformed/sensitive-content/provider failure marks the attempt failed and returns the cycle to Submitted without creating a revision. Oversized responses count as malformed. Ignore late completions; add a content-free discard event without overwriting a recorded failure or any newer attempt/revision.
 
-On startup, before serving requests, mark all persisted running attempts `failed` with `PROCESS_INTERRUPTED` and return their cycles to Submitted, preserving any older revision. The single-process design cannot resume in-flight mock work. If completion persistence fails, do not claim success; the deadline sweep retries the terminal transaction, and startup recovery handles a process exit. Sweep deadlines at least once per second. A lost HTTP response is recovered through idempotency replay or GET status, not a duplicate generation.
+On startup, before serving requests, mark all persisted running attempts `failed` with `PROCESS_INTERRUPTED` and return their cycles to Submitted, preserving any older revision. The single-process design cannot resume in-flight mock work. If completion persistence fails, do not claim success; the deadline sweep retries the terminal transaction, and startup recovery handles a process exit. Sweep deadlines at least once per second. A lost HTTP response is recovered through idempotency replay within the issuing session, or authorized GET status. After session expiration/replacement, select a role and inspect existing cycles/history before starting new work; a new session does not inherit an earlier receipt.
 
 ## 10. Screens and artifacts
 

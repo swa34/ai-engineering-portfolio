@@ -128,3 +128,22 @@ Limitations and next gate: no application has been built or tested, and document
 The PR will describe the proposed architecture, API and storage contracts, constrained prose validation, review/approval behavior, security and accessibility requirements, and 44 unexecuted evaluation cases. Its validation record is limited to document checks and independent specification review. Local agent memory and configuration stay excluded from Git.
 
 2026-09-12: Committed the specification as `efa7ca0`, pushed the Phase 3 branch, and opened [PR #2](https://github.com/swa34/ai-engineering-portfolio/pull/2) against `main`. GitHub readback confirmed the PR is open for review, references that specification commit, and includes exactly the eight intended documentation files. The staged inventory excludes local agent files, the limited credential-pattern scan found no matches, and the independent scope review found no publication blocker. Merging and implementation remain pending approval.
+
+## Phase 3 review-comment updates
+
+2026-09-12: Scott approved addressing all seven assessed review comments. This follow-up updates the specification and the existing PR; it does not start implementation or authorize merging.
+
+- [x] Reconcile Unicode/serialized-byte limits and polling/read budgets in one shared limits definition.
+- [x] Separate structural tone checks from semantic findings and remove the unreachable length finding.
+- [x] Name the draft schema, enumerate nullability, and clarify server-created copied drafts and session-scoped replay.
+- [x] Extend existing evaluation cases, verify boundaries and cross-document consistency, and independently review the changes.
+- [ ] Commit and push the corrections to PR #2 and verify its head commit.
+
+The shared resource table now defines provider and request byte caps sized for compact Unicode-escaped JSON, plus a read budget with headroom for two active pollers and ordinary navigation. Known template mismatches are semantic findings; unknown IDs and excessive field lengths fail schema validation. DraftSource explicitly enumerates nullable fields and the server-created copied-content exception. Receipt replay is limited to the issuing valid session, with expiry/reset and role replacement covered in the evaluation plan.
+
+Review-update verification:
+
+- Maximum-field synthetic candidate fixtures serialize to 29,863 bytes in direct UTF-8 and 88,583 bytes with conventional Unicode escaping; escaping every string and key produces 90,198 bytes. The complete revision wrapper also fits its revised cap, and each encoding round-trips to the same JSON value.
+- Budget arithmetic admits 120 attempt polls plus 60 ordinary reads per rolling minute; excess traffic remains subject to throttling and Retry-After. This is a workload calculation, not a measured application result.
+- All 48 local links resolve across ten tracked Markdown documents. Both JSON examples remain valid, all 44 evaluation rows remain unexecuted, all 19 case-study sections and seven placeholders remain intact, and the four Mermaid blocks remain unchanged.
+- Independent review found no blocking gap in the seven corrections. Its reset/receipt wording clarification was incorporated. Boundary/document checks and `git diff --check` pass; no application tests have been run.

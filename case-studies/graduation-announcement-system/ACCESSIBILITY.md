@@ -10,7 +10,7 @@ Support the full create → submit → generate → review → approve → prepa
 
 ## Forms and errors
 
-Provide visible labels for every input, required-field indicators explained in text, and instructions for synthetic-only data and consent. Group tone, length, and channel controls using native grouping semantics. Consent and fictional-data acknowledgment start unchecked and require independent actions. Never infer them from continuing the workflow.
+Provide visible labels for every input, required-field indicators explained in text, and instructions for synthetic-only data and consent. Group tone, length, and channel controls using native grouping semantics. Consent and fictional-data acknowledgment start unchecked and require independent actions, including on correction/restart forms prefilled with copied content. Explain that the copied fields are retained for review and must be acknowledged again before saving/submitting. Never infer them from continuing the workflow.
 
 After failed submission, focus an error summary with links to invalid fields. Keep entered values, associate field errors with their controls, mark invalid controls programmatically, and explain how to fix the error without repeating potentially sensitive text. Inline length counters must not announce every keystroke; announce approaching/exceeded limits at meaningful thresholds. Do not rely on placeholder text as the only label.
 
