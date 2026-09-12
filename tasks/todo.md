@@ -20,6 +20,7 @@
 - [x] Phase 2: Check completeness, links, claims, and diagram consistency.
 - [x] Phase 2: Commit the documentation milestone, push the feature branch, and open a review PR.
 - [x] Phase 2: Address PR review consistency comments and verify local agent files remain excluded.
+- [x] Phase 2: Confirm all four Mermaid diagrams render in GitHub's Markdown preview.
 - [ ] Before public portfolio release: Obtain Scott's license choice; do not select a license on his behalf.
 - [ ] Phase 2: Obtain Scott's approval of the drafts before Phase 3.
 - [ ] Phase 3: Define architecture, synthetic records, API contracts, and structured output schema.
@@ -57,7 +58,7 @@ Verification evidence:
 
 Remaining limitations and review gates:
 
-- Mermaid diagrams have not been rendered or fully parsed; visual validation remains outstanding.
+- GitHub rendering is now verified for all four Mermaid diagrams following PR review. The sequence parse failure and stray state nodes caused by semicolons were corrected. This is diagram verification, not application validation.
 - The application has not been implemented. Application, security, accessibility, and performance evaluation remain not yet tested.
 - Phase 3 must resolve narrative composition constraints, request-versus-candidate state storage, demo identity, and practical retention/audit protections before implementation.
 - Scott must approve the Phase 2 drafts before Phase 3 begins. Unconfirmed personal claims may remain placeholders while development proceeds.
@@ -67,7 +68,7 @@ Remaining limitations and review gates:
 
 The remote repository was verified as public and empty, with no existing branches or open PRs. An empty initial commit on `main` is needed as the PR base; all showcase content will be introduced through `swa34/graduation-announcement-showcase`. Local agent configuration and memory are excluded from Git. Only independently authored documentation and repository housekeeping belong in this PR.
 
-The PR is a review checkpoint for the Phase 2 documentation. It does not certify implementation, approve personal-role placeholders, or start Phase 3. Mermaid visual review remains outstanding and can be performed in GitHub's rendered Markdown view.
+The PR is a review checkpoint for the Phase 2 documentation. It does not certify implementation, approve personal-role placeholders, or start Phase 3. Mermaid rendering was checked in GitHub's Markdown preview during the review follow-up.
 
 Final staged-content verification passed for seven files (six Markdown documents and `.gitignore`): 14 links target files included in the PR, all 19 case-study sections and seven exact owner placeholders are present, and the four Mermaid blocks exist. A limited credential-pattern scan found no matches. Local agent memory is excluded, and the initial `main` commit contains no files. An independent final document review found no merge blockers for this documentation milestone. No application or full security evaluation was performed.
 
@@ -77,4 +78,6 @@ Final staged-content verification passed for seven files (six Markdown documents
 
 2026-09-12: Addressed all six inline review findings: restricted verification counts to tracked documents; aligned regeneration around a separate Submitted cycle using the existing consented snapshot; made human editing optional before approval; made the return to Submitted visible after provider failure; distinguished terminal rejection from a revision request; and labeled the root overview as an unfinished public draft. Added a dependency ignore rule. License selection remains an owner decision.
 
-Repeated document checks passed for six tracked Markdown files, 14 local links to tracked files, 19 numbered sections, seven exact placeholders, and four Mermaid blocks with balanced sequence controls. A second read-only review found no blocking consistency issues. Git inventory and every reachable commit contain no Codex configuration, agent configuration, or local memory files; `.Codex/`, `.codex/`, and `.agents/` are ignored and remain local only. GitHub diagram rendering is the remaining visual review check.
+Repeated document checks passed for six tracked Markdown files, 14 local links to tracked files, 19 numbered sections, seven exact placeholders, and four Mermaid blocks with balanced sequence controls. A second read-only review found no blocking consistency issues. Git inventory and every reachable commit contain no Codex configuration, agent configuration, or local memory files; `.Codex/`, `.codex/`, and `.agents/` are ignored and remain local only.
+
+2026-09-12: GitHub's preview exposed semicolons being interpreted as Mermaid statement separators: the state diagram gained stray nodes and the sequence diagram failed to parse. Replaced those separators in diagram labels and verified all four rendered diagrams on GitHub at commit `7582f71`. The corrected state and sequence views were also inspected visually. This closes the outstanding rendering check; owner approval and licensing remain pending.
