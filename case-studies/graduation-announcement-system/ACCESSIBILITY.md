@@ -1,6 +1,6 @@
 # Graduation Announcement Demonstration — Accessibility Requirements
 
-**Phase 3 requirements draft — not implemented or evaluated.** These are testable design requirements for the fictional local demonstration, not an accessibility conformance claim. See the [technical specification](TECHNICAL_SPEC.md) and [evaluation matrix](EVALUATION.md).
+**Accessibility requirements — not implemented or evaluated.** These are testable design requirements for the fictional local demonstration, not an accessibility conformance claim. See the [technical specification](TECHNICAL_SPEC.md) and [evaluation matrix](EVALUATION.md).
 
 ## Structure and navigation
 

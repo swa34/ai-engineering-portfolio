@@ -1,21 +1,21 @@
 # Graduation Announcement Demonstration — Technical Specification
 
-**Phase 3 specification draft, 2026-09-12 — awaiting owner review before implementation.** This document specifies an independently authored local demonstration using fictional data. Nothing here is an implementation result or a claim about an employer system. See the [disclaimer](DISCLAIMER.md).
+**Design specification — not implemented or tested.** This document specifies an independently authored local demonstration using fictional data. Nothing here is an implementation result or a claim about an employer system. See the [disclaimer](DISCLAIMER.md).
 
-The [Phase 2 case study](CASE_STUDY.md) establishes the intended workflow. This specification resolves its open decisions; the [conceptual diagrams](ARCHITECTURE.md) remain a higher-level view. Companion requirements are in [security design](SECURITY_DESIGN.md), [accessibility](ACCESSIBILITY.md), and [evaluation](EVALUATION.md).
+The [case study](CASE_STUDY.md) establishes the intended workflow. This specification resolves its open decisions; the [conceptual diagrams](ARCHITECTURE.md) remain a higher-level view. Companion requirements are in [security design](SECURITY_DESIGN.md), [accessibility](ACCESSIBILITY.md), and [evaluation](EVALUATION.md).
 
 ## 1. Scope and design decisions
 
 The demonstration will let a contributor submit fictional graduate facts, explicitly generate a mock candidate, and let a reviewer compare, optionally edit, request changes, reject, or approve it. Only a specifically approved revision can be prepared for local preview/export. Success means the evaluation requirements can be demonstrated reproducibly without credentials or external requests.
 
-| Decision | Phase 3 choice and consequence |
+| Decision | Design choice and consequence |
 | --- | --- |
 | Runtime boundary | React/Vite and TypeScript UI, one Node.js/Express API process, runtime schemas, and local SQLite. API modules own all enforcement. |
 | Drafting freedom | Two versioned prose templates with exact source-linked facts. Arbitrary paraphrase cannot pass approval checks. This limits editorial variety but makes narrative checks reproducible. |
 | State ownership | A request groups review cycles. Each cycle has a status and current revision. Immutable revisions, approvals, and source snapshots have their own identities. There is no independent request status. |
 | Identity | Explicitly labeled local role simulation using server-issued sessions for three fixed fictional actors. Role checks demonstrate application policy, not verified human identity. |
 | History and retention | Append-only application history within a disposable local dataset. Whole-dataset reset clears the database and invalidates sessions. No production retention or tamper-proof audit claim. |
-| Provider | Mock only in Phase 4. A future adapter must use the same contract and receive separate review. No SDK, API key, or live request is needed for this milestone. |
+| Provider | Mock only in the local demonstration. A future adapter must use the same contract and receive separate review. No SDK, API key, or live request is needed for the local demonstration. |
 
 No email, social publishing, external data import, file upload, real student accounts, institutional authentication, dashboards of invented metrics, or production deployment is in scope. PostgreSQL migration and live-model evaluation are follow-on work. Dependency versions and lockfiles will be selected and verified at implementation time, not asserted as tested here.
 
@@ -92,7 +92,7 @@ Source corrections create another Draft cycle and require submission of a new sn
 
 ## 4. Provider response and narrative contract
 
-The adapter receives only normalized facts and preferences, a random attempt ID, and `schema_version: "1"`. It receives no session, reviewer identity, consent metadata, audit history, filesystem path, or tool capability. Phase 4's mock performs no network access and visibly reports `provider_mode: "mock"` in server metadata, outside the provider-controlled payload.
+The adapter receives only normalized facts and preferences, a random attempt ID, and `schema_version: "1"`. It receives no session, reviewer identity, consent metadata, audit history, filesystem path, or tool capability. The local mock performs no network access and visibly reports `provider_mode: "mock"` in server metadata, outside the provider-controlled payload.
 
 Every successful response must satisfy this strict `CandidateOutput` shape. Required keys are exactly those below; nested objects are strict too.
 
@@ -268,9 +268,3 @@ The request form shows fictional-only guidance, field errors, explicit consent, 
 The review screen presents source snapshot, original generated revision, selected human revision, and findings in a logical reading order. Display revision IDs/sequence labels, the current version indicator, and the approval-bound revision. Offer explicit Generate, Save revision, Request changes, Reject, and Approve controls only where appropriate; the server repeats every guard. A stale response prompts refresh with an explanation and preserves unsaved editor text for comparison; it never automatically resubmits approval.
 
 Preparing an approval creates a plain-text artifact from the stored approved content. Its first line is `FICTIONAL DEMONSTRATION — NOT FOR REAL DISTRIBUTION`. Include the fictional institution, provider mode, approval/revision/source IDs, headline, body, and short social version in fixed labeled sections. Exclude internal notes and findings. Server-side artifact template version 1 and exact bytes are stored. The JSON preview renders those bytes as text, and its print view retains the label and identifiers. There is no separate unapproved download path. Browser print of a draft cannot be prevented, so draft screens also retain “Unapproved fictional draft” in print styles.
-
-## 11. Implementation handoff and review gate
-
-Phase 4 should implement schemas and canonical composition first, then persistence/transactions and mock faults, then API/session enforcement, then the review UI and approved artifacts. Each step must satisfy its relevant [evaluation cases](EVALUATION.md). Keep fixtures synthetic and source/proposed content distinctions visible throughout.
-
-The owner review decision is whether to accept constrained prose, local simulated identities, disposable dataset retention, and the specified workflow/API behavior for implementation. No unresolved infrastructure or credential choice blocks this document. Actual application, security, accessibility, and performance results remain **not yet tested**. This drafting request does not authorize implementation, commit/push, publication, or deployment.

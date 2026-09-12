@@ -1,10 +1,10 @@
 # Graduation Announcement Demonstration — Evaluation Plan
 
-**Phase 3 test specification — no application tests have been executed.** Every result below is deliberately untested. Documentation checks validate this specification, not a working application. See the [technical specification](TECHNICAL_SPEC.md), [security requirements](SECURITY_DESIGN.md), and [accessibility requirements](ACCESSIBILITY.md).
+**Evaluation specification — no application tests have been executed.** Every result below is deliberately untested. Documentation checks validate this specification, not a working application. See the [technical specification](TECHNICAL_SPEC.md), [security requirements](SECURITY_DESIGN.md), and [accessibility requirements](ACCESSIBILITY.md).
 
 ## Execution method and evidence
 
-Phase 4 will implement deterministic unit/contract tests for schemas, canonical composition, and validation; integration tests against temporary SQLite databases and the API; and browser tests for the full workflow. Inject mock response fixtures and a controllable clock to exercise timeouts and late responses without paid requests or long sleeps. Test the public API and observable persisted outcomes, not merely UI button visibility or mocks of approval logic.
+The evaluation specifies deterministic unit/contract tests for schemas, canonical composition, and validation; integration tests against temporary SQLite databases and the API; and browser tests for the full workflow. Inject mock response fixtures and a controllable clock to exercise timeouts and late responses without paid requests or long sleeps. Test the public API and observable persisted outcomes, not merely UI button visibility or mocks of approval logic.
 
 Fixtures derive only from `complete-standard` and `minimal-brief` or other independently invented records. A normal mock response is not evidence of real-model quality. Every test run records commit, date, runtime/dependency versions, command, fixture/scenario, database migration version, provider mode, expected result, actual result, pass/fail, and evidence location. Browser/manual runs additionally record browser, viewport, OS, and assistive technology where used. Never record sensitive content, tokens, or real source data in evidence.
 
@@ -65,8 +65,8 @@ Implementation acceptance requires all required automated cases to pass and all 
 
 Before reporting results, inspect persisted snapshots/revisions and compare them before/after edits, regeneration, failures, rejection, and withdrawal. For concurrency tests, assert counts and foreign-key relationships, not only HTTP statuses. For artifacts, compare exact bytes/digests against the approved revision and template version. Capture synthetic screenshots only after screens work.
 
-Phase 6 also requires lint/type checks, automated tests, accessibility review, a secret/content scan, and a clean-start verification with commands/results documented in the implementation. Those commands cannot be truthfully supplied as working scripts before the application exists. No latency, accuracy, accessibility conformance, business benefit, or live-model performance claim is established by this plan.
+Acceptance also requires lint/type checks, automated tests, accessibility review, a secret/content scan, and clean-start verification with recorded commands and results. No latency, accuracy, accessibility conformance, business benefit, or live-model performance claim is established by this specification.
 
 ## Current evidence
 
-Application build: **not implemented**. Provider evaluation: **not run**. Security and accessibility checks: **not run**. All matrix results remain **Not tested**. Phase 3 document validation is recorded separately in the [todo review record](../../tasks/todo.md).
+Application build: **not implemented**. Provider evaluation: **not run**. Security and accessibility checks: **not run**. All matrix results remain **Not tested**.

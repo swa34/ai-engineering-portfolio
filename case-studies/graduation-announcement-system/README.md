@@ -1,31 +1,24 @@
 # AI-Assisted Graduation Announcement Workflow
 
-**Review status: Phase 3 specification draft, awaiting approval before implementation.** This directory contains a sanitized case-study outline, conceptual diagrams, and detailed demonstration requirements. It is not documentation of an employer's implementation or an available application.
+A system design for an AI-assisted communications workflow using a fictional university and synthetic graduate records. It examines how to preserve submitted facts, validate generated content, and require a deliberate human decision before an announcement can be exported.
 
-Read the [case study](CASE_STUDY.md), [four diagram drafts](ARCHITECTURE.md), and [confidentiality disclaimer](DISCLAIMER.md). The [repository todo list](../../tasks/todo.md) tracks the approval gates and remaining work.
+**Status:** Design documentation is available. The demonstration is not yet implemented; application, security, and accessibility tests have not been run.
 
-Phase 3 deliverables:
+## Engineering focus
 
-- [Technical specification](TECHNICAL_SPEC.md): architecture, fictional source records, structured output, constrained prose, storage, API, and review lifecycle.
-- [Security design](SECURITY_DESIGN.md): simulated identities, server enforcement, input screening, consent withdrawal, audit limits, and dataset reset.
-- [Accessibility requirements](ACCESSIBILITY.md): forms, keyboard review, announcements, responsive comparison, and print behavior.
-- [Evaluation plan](EVALUATION.md): 44 required cases, expected results, and explicitly untested result fields.
+- Structured source records and constrained prose composition to make factual checks explicit.
+- Server-enforced review decisions, immutable revisions, and approval bound to a specific version.
+- Source-to-draft comparison, visible validation findings, and accessible review controls.
+- A local mock provider specified for repeatable scenarios without credentials or paid requests.
 
-## Proposed showcase
+The proposed stack uses React/Vite, TypeScript, Node.js/Express, and SQLite. Mock generation would demonstrate the workflow; it would not establish live-model performance.
 
-A fictional North Valley University communications workflow would collect synthetic graduate information, preserve submitted facts, generate a structured draft, validate its factual content, and route it to human review. The main screen would compare source facts, generated content, validation findings, human edits, and approval status. It would include a review queue and version history without invented dashboard statistics.
+## Documentation
 
-The mock provider would work without credentials or paid requests and be visibly labeled as simulated generation. A possible live-provider adapter would remain server-side and optional; it is not implemented or enabled.
-
-## Owner review
-
-- Review the framing and generalized workflow without disclosing internal processes.
-- Replace personal-role and historical-outcome placeholders only with approved, non-confidential statements. Placeholders may remain during development.
-- Review the validation limits, fictional framing, and proposed human-approval boundary.
-- Review the Phase 3 specification and approve it before implementation. Key choices are controlled prose templates, simulated local roles, immutable version-bound approval, and disposable local storage.
-
-## Planned documentation
-
-Phase 3 documentation is drafted above. Phase 4 will create the demonstration in `demos/graduation-announcement/`. Phase 5 will add working screenshots, portfolio presentation, and print-friendly views. The application and presentation deliverables do not exist yet; all application evaluation results remain untested.
-
-No files in this showcase were derived from a private application. See the [full disclaimer](DISCLAIMER.md) for scope and limitations.
+- [Case study](CASE_STUDY.md): problem, workflow, engineering choices, and limitations.
+- [Architecture and workflow diagrams](ARCHITECTURE.md): components, state transitions, and review sequence.
+- [Technical specification](TECHNICAL_SPEC.md): fictional records, schemas, persistence, API contracts, and failure recovery.
+- [Security design](SECURITY_DESIGN.md): trust boundaries, simulated identities, input screening, and audit limits.
+- [Accessibility requirements](ACCESSIBILITY.md): forms, keyboard interaction, status announcements, and print behavior.
+- [Evaluation criteria and test matrix](EVALUATION.md): 44 scenarios with expected outcomes; results are untested.
+- [Disclaimer](DISCLAIMER.md): fictional data and independent-demonstration scope.

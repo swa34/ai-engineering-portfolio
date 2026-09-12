@@ -1,10 +1,10 @@
 # Graduation Announcement Demonstration — Security Design
 
-**Phase 3 requirements draft — controls are not implemented or tested.** This is the security design for the local fictional demonstration, not a repository vulnerability report or production assurance. Read the [technical specification](TECHNICAL_SPEC.md), [evaluation matrix](EVALUATION.md), and [disclaimer](DISCLAIMER.md).
+**Security requirements — controls are not implemented or tested.** This is the security design for the local fictional demonstration, not a repository vulnerability report or production assurance. Read the [technical specification](TECHNICAL_SPEC.md), [evaluation matrix](EVALUATION.md), and [disclaimer](DISCLAIMER.md).
 
 ## Trust boundaries and protected operations
 
-The browser, entered source strings, provider output, and client-supplied identifiers are untrusted. The API enforces policy; SQLite stores authoritative snapshots, revisions, findings, and approvals. A provider can propose content only. It cannot read sessions, invoke application actions, amend facts, clear findings, or approve/export content. Phase 4 uses the mock with no external requests.
+The browser, entered source strings, provider output, and client-supplied identifiers are untrusted. The API enforces policy; SQLite stores authoritative snapshots, revisions, findings, and approvals. A provider can propose content only. It cannot read sessions, invoke application actions, amend facts, clear findings, or approve/export content. The specified local demonstration uses the mock with no external requests.
 
 Primary properties to demonstrate are source and approval integrity, rejection of unauthorized mutations, separation of approved and unapproved artifacts, bounded resource use, and avoidance of accidental source/secret disclosure. A person controlling the local host or database can alter it; that threat is outside this demo's protection boundary and must be stated in its documentation.
 
@@ -83,4 +83,4 @@ Reset requires the literal confirmation string in the API contract and a dedicat
 
 Implement and execute the applicable [evaluation cases](EVALUATION.md), including direct API authorization, object access, cross-origin requests, malicious source/output rendering, stale writes, interrupted attempts, audit rollback, withdrawal, and reset races. Documentation review alone cannot pass these tests.
 
-Real identity, deployment hardening, encrypted backups, regulatory analysis, external provider retention, intrusion detection, and tamper-evident external audit storage are excluded from Phase 4. They require their own design and evidence before any production use. The current application/security evaluation status is **not yet tested**.
+Real identity, deployment hardening, encrypted backups, regulatory analysis, external provider retention, intrusion detection, and tamper-evident external audit storage are outside the local demonstration scope. They require their own design and evidence before any production use. The current application/security evaluation status is **not yet tested**.
