@@ -926,6 +926,10 @@ textarea[aria-invalid="true"] {
 .preserve-lines {
 	white-space: pre-wrap;
 }
+.revision-controls {
+	display: grid;
+	gap: 8px;
+}
 .revision-select {
 	font-size: 0.65rem;
 	max-width: 240px;

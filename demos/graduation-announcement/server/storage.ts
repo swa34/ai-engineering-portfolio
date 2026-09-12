@@ -3,12 +3,42 @@ import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 
 export function openDatabase(path: string) {
-	if (path !== ":memory:") mkdirSync(dirname(path), { recursive: true });
-	const db = new Database(path);
-	db.pragma("foreign_keys = ON");
-	db.pragma("busy_timeout = 2000");
-	db.pragma("journal_mode = DELETE");
-	db.exec(`
+	let db: Database.Database | undefined;
+	try {
+		if (path !== ":memory:") mkdirSync(dirname(path), { recursive: true });
+		db = new Database(path);
+		const tables = db
+			.prepare(
+				"SELECT name FROM sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%'",
+			)
+			.all() as { name: string }[];
+		if (tables.length) {
+			if (!tables.some((table) => table.name === "migrations"))
+				throw new Error("Unsupported schema");
+			const columns = db.pragma("table_info(migrations)") as {
+				name: string;
+				type: string;
+				pk: number;
+			}[];
+			const versions = db.prepare("SELECT version FROM migrations").all() as {
+				version: unknown;
+			}[];
+			if (
+				columns.length !== 1 ||
+				columns[0].name !== "version" ||
+				columns[0].type !== "INTEGER" ||
+				columns[0].pk !== 1 ||
+				versions.length !== 1 ||
+				versions[0].version !== 1
+			)
+				throw new Error("Unsupported schema");
+		}
+		db.pragma("foreign_keys = ON");
+		db.pragma("busy_timeout = 2000");
+		db.pragma("journal_mode = DELETE");
+		if (!tables.length)
+			db.transaction(() =>
+				db!.exec(`
     CREATE TABLE IF NOT EXISTS migrations (version INTEGER PRIMARY KEY);
     INSERT OR IGNORE INTO migrations VALUES (1);
     CREATE TABLE IF NOT EXISTS requests (
@@ -70,8 +100,15 @@ export function openDatabase(path: string) {
     );
     CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
     INSERT OR IGNORE INTO settings VALUES ('scenario','normal');
-  `);
-	return db;
+  `),
+			)();
+		return db;
+	} catch {
+		if (db?.open) db.close();
+		throw new Error(
+			"The demo database could not be opened with schema version 1. Preserve the existing file, then use a compatible app version or set DATABASE_PATH to a new file for a fresh fictional demo.",
+		);
+	}
 }
 
 export type DemoDatabase = ReturnType<typeof openDatabase>;

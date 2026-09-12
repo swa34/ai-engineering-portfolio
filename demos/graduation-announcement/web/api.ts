@@ -11,9 +11,18 @@ export class ApiError extends Error {
 }
 
 let readPauseUntil = 0;
-// Keep the same delivery key for an explicit retry after a lost response or a
-// pre-commit storage failure. The token scopes this to the issuing session.
-let uncertainMutation: { signature: string; key: string } | null = null;
+// Retain each uncertain delivery independently until its result is known. Never
+// evict an unresolved key: a lost successful response may already have committed.
+const uncertainMutations = new Map<string, string>();
+let mutationSession: string | undefined;
+const maxUncertainMutations = 64;
+
+function setRetrySession(scope: string) {
+	if (mutationSession !== scope) {
+		uncertainMutations.clear();
+		mutationSession = scope;
+	}
+}
 export async function api<T>(
 	path: string,
 	options: {
@@ -35,13 +44,20 @@ export async function api<T>(
 	const method = options.method ?? "GET";
 	const mutation = method !== "GET";
 	const body = mutation ? JSON.stringify(options.body ?? {}) : undefined;
-	const signature = `${options.csrf ?? "initial"} ${method} ${path} ${body ?? ""}`;
-	const key = mutation
-		? uncertainMutation?.signature === signature
-			? uncertainMutation.key
-			: crypto.randomUUID()
-		: "";
-	if (mutation) uncertainMutation = { signature, key };
+	if (mutation) setRetrySession(options.csrf ?? "initial");
+	const issuingSession = mutationSession;
+	const signature = `${method} ${path} ${body ?? ""}`;
+	let key = "";
+	if (mutation) {
+		const pending = uncertainMutations.get(signature);
+		if (!pending && uncertainMutations.size >= maxUncertainMutations)
+			throw new ApiError(
+				"PENDING_REQUEST_LIMIT",
+				"Too many requests have an unknown result. Reconnect and retry a pending action before starting another.",
+			);
+		key = pending ?? crypto.randomUUID();
+		uncertainMutations.set(signature, key);
+	}
 	const response = await fetch(`/api/v1${path}`, {
 		method,
 		credentials: "same-origin",
@@ -56,8 +72,25 @@ export async function api<T>(
 		...(mutation ? { body } : {}),
 	});
 	const data = response.status === 204 ? null : await response.json();
-	if (mutation && response.status !== 503 && uncertainMutation?.key === key)
-		uncertainMutation = null;
+	if (mutationSession === issuingSession) {
+		if (
+			mutation &&
+			response.status !== 503 &&
+			uncertainMutations.get(signature) === key
+		)
+			uncertainMutations.delete(signature);
+		if (
+			response.status === 401 ||
+			(response.ok &&
+				((path === "/session" && method === "DELETE") ||
+					path === "/demo/reset"))
+		) {
+			uncertainMutations.clear();
+			mutationSession = undefined;
+		} else if (response.ok && typeof data?.csrf_token === "string") {
+			setRetrySession(data.csrf_token);
+		}
+	}
 	if (!response.ok) {
 		const retryAfter = Math.max(
 			1,

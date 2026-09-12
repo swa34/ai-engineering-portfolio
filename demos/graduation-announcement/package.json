@@ -9,7 +9,7 @@
 	"scripts": {
 		"dev": "concurrently -k -n api,web \"tsx watch server/index.ts\" \"vite\"",
 		"typecheck": "tsc --noEmit",
-		"lint": "biome lint .",
+		"lint": "biome check .",
 		"test": "node --import tsx --test --test-isolation=none tests/*.test.ts",
 		"test:browser": "playwright test",
 		"build": "npm run typecheck && vite build",

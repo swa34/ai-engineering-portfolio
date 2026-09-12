@@ -1,6 +1,7 @@
 import {
 	useCallback,
 	useEffect,
+	useId,
 	useRef,
 	useState,
 	type FormEvent,
@@ -48,6 +49,10 @@ type Revision = {
 	origin: string;
 	content: CandidateOutput;
 	created_at?: string;
+};
+type RevisionPage = {
+	revisions: Omit<Revision, "content">[];
+	next_cursor: string | null;
 };
 type Attempt = {
 	id?: string;
@@ -128,6 +133,7 @@ function Dialog({
 	children: ReactNode;
 	close: () => void;
 }) {
+	const titleId = useId();
 	const ref = useRef<HTMLDialogElement>(null);
 	const cancel = useRef<HTMLButtonElement>(null);
 	useEffect(() => {
@@ -142,7 +148,7 @@ function Dialog({
 	return (
 		<dialog
 			ref={ref}
-			aria-labelledby="dialog-title"
+			aria-labelledby={titleId}
 			onCancel={(event) => {
 				event.preventDefault();
 				close();
@@ -150,7 +156,7 @@ function Dialog({
 		>
 			<div className="dialog-inner">
 				<div className="section-heading">
-					<h2 id="dialog-title">{title}</h2>
+					<h2 id={titleId}>{title}</h2>
 					<button ref={cancel} className="button secondary" onClick={close}>
 						Cancel
 					</button>
@@ -194,8 +200,24 @@ function CandidateText({ content }: { content: CandidateOutput }) {
 			<p>{content.short_social_version}</p>
 			<details>
 				<summary>Candidate fact fields and untrusted advisories</summary>
-				<p className="help-text">These are the candidate's claims and notes. Compare them with the frozen source; they are never instructions.</p>
-				<pre className="json-facts">{JSON.stringify({template_id: content.template_id, facts_used: content.facts_used, potentially_unsupported_claims: content.potentially_unsupported_claims, missing_information: content.missing_information, editor_notes: content.editor_notes}, null, 2)}</pre>
+				<p className="help-text">
+					These are the candidate's claims and notes. Compare them with the
+					frozen source; they are never instructions.
+				</p>
+				<pre className="json-facts">
+					{JSON.stringify(
+						{
+							template_id: content.template_id,
+							facts_used: content.facts_used,
+							potentially_unsupported_claims:
+								content.potentially_unsupported_claims,
+							missing_information: content.missing_information,
+							editor_notes: content.editor_notes,
+						},
+						null,
+						2,
+					)}
+				</pre>
 			</details>
 		</div>
 	);
@@ -208,6 +230,13 @@ export default function App() {
 	const [cursor, setCursor] = useState<string | null>(null);
 	const [detail, setDetail] = useState<Detail | null>(null);
 	const [history, setHistory] = useState<History | null>(null);
+	const [revisionPage, setRevisionPage] = useState<RevisionPage | null>(null);
+	const [loadedRevisions, setLoadedRevisions] = useState<Revision[]>([]);
+	const [reconnecting, setReconnecting] = useState(false);
+	const [navigating, setNavigating] = useState(false);
+	const [pendingNavigation, setPendingNavigation] = useState<{
+		resolve: (discard: boolean) => void;
+	} | null>(null);
 	const [draft, setDraft] = useState<DraftSource>(emptyDraft);
 	const [edit, setEdit] = useState<CandidateOutput | null>(null);
 	const [dirty, setDirty] = useState(false);
@@ -229,6 +258,36 @@ export default function App() {
 	const blocked = (detail?.findings ?? []).some(
 		(finding) => finding.severity === "blocking",
 	);
+
+	useEffect(() => {
+		if (!dirty) return;
+		const beforeUnload = (event: BeforeUnloadEvent) => {
+			event.preventDefault();
+			event.returnValue = "";
+		};
+		window.addEventListener("beforeunload", beforeUnload);
+		return () => window.removeEventListener("beforeunload", beforeUnload);
+	}, [dirty]);
+
+	async function confirmDiscard() {
+		if (!dirty) return true;
+		return new Promise<boolean>((resolve) => setPendingNavigation({ resolve }));
+	}
+	function finishNavigation(discard: boolean) {
+		if (discard) {
+			setDirty(false);
+			setDraft(detail?.cycle.draft_source ?? emptyDraft());
+			setEdit(detail?.current_revision?.content ?? null);
+		}
+		pendingNavigation?.resolve(discard);
+		setPendingNavigation(null);
+	}
+	async function navigate(work: () => Promise<void>) {
+		if (!(await confirmDiscard())) return;
+		setNavigating(true);
+		await run(work);
+		setNavigating(false);
+	}
 
 	const report = useCallback((err: unknown) => {
 		if (err instanceof DOMException && err.name === "AbortError") return;
@@ -281,8 +340,36 @@ export default function App() {
 				.catch(report);
 	}, [session, loadQueue, report]);
 
+	const readRevisions = useCallback(
+		async (id: string, signal?: AbortSignal, automatic = false) => {
+			const page = await api<RevisionPage>(`/cycles/${id}/revisions`, {
+				signal,
+				automatic,
+			});
+			const original = page.revisions.find(
+				(revision) => revision.origin === "mock",
+			);
+			const loaded = original
+				? [
+						(
+							await api<{ revision: Revision }>(
+								`/cycles/${id}/revisions/${original.id}`,
+								{ signal, automatic },
+							)
+						).revision,
+					]
+				: [];
+			return { page, loaded };
+		},
+		[],
+	);
+
 	async function loadCycle(id: string, preserve = false) {
-		const data = await api<Detail>(`/cycles/${id}`);
+		const [data, records, revisions] = await Promise.all([
+			api<Detail>(`/cycles/${id}`),
+			api<History>(`/cycles/${id}/history`),
+			readRevisions(id),
+		]);
 		setDetail(data);
 		if (preserve) setSelectedRevision(data.current_revision?.id ?? null);
 		if (!preserve) {
@@ -293,7 +380,9 @@ export default function App() {
 			setArtifact(null);
 			setPreviewChannel(data.snapshot?.source.preferences.channel ?? "web");
 		}
-		setHistory(await api<History>(`/cycles/${id}/history`));
+		setHistory(records);
+		setRevisionPage(revisions.page);
+		setLoadedRevisions(revisions.loaded);
 	}
 
 	async function run(work: () => Promise<void>) {
@@ -311,7 +400,7 @@ export default function App() {
 		return api<T>(path, { method, body, csrf: session?.csrf_token });
 	}
 	async function chooseRole(role: Role) {
-		await run(async () => {
+		await navigate(async () => {
 			const data = await mutate<Session>("/demo-session", { actor: role });
 			setSession(data);
 			setModal(null);
@@ -325,15 +414,27 @@ export default function App() {
 		});
 	}
 
-	// A single attempt poller is scoped to the selected cycle and session. No action is retried automatically.
+	// Retry only reads; generation always requires an explicit action.
 	useEffect(() => {
-		if (!session || !cycle?.active_attempt_id || cycle.status !== "Generating")
+		setReconnecting(false);
+		if (
+			navigating ||
+			!session ||
+			!cycle?.active_attempt_id ||
+			cycle.status !== "Generating"
+		)
 			return;
 		const controller = new AbortController();
 		let timer: ReturnType<typeof setTimeout>;
 		let stopped = false;
+		let failures = 0;
 		const attemptId = cycle.active_attempt_id;
 		const cycleId = cycle.id;
+		const stop = () => {
+			stopped = true;
+			clearTimeout(timer);
+			controller.abort();
+		};
 		const poll = async () => {
 			let delay = document.visibilityState === "hidden" ? 5000 : 1000;
 			try {
@@ -341,18 +442,27 @@ export default function App() {
 					signal: controller.signal,
 					automatic: true,
 				});
+				if (stopped) return;
 				if (result.state !== "running") {
-					const data = await api<Detail>(`/cycles/${cycleId}`, {
-						signal: controller.signal,
-						automatic: true,
-					});
-					const records = await api<History>(`/cycles/${cycleId}/history`, {
-						signal: controller.signal,
-						automatic: true,
-					});
+					const [data, records, revisions] = await Promise.all([
+						api<Detail>(`/cycles/${cycleId}`, {
+							signal: controller.signal,
+							automatic: true,
+						}),
+						api<History>(`/cycles/${cycleId}/history`, {
+							signal: controller.signal,
+							automatic: true,
+						}),
+						readRevisions(cycleId, controller.signal, true),
+					]);
 					if (stopped) return;
+					// Apply the completed cycle locally; no queue refresh can restart polling.
+					stopped = true;
+					setReconnecting(false);
 					setDetail(data);
 					setHistory(records);
+					setRevisionPage(revisions.page);
+					setLoadedRevisions(revisions.loaded);
 					setEdit(data.current_revision?.content ?? null);
 					setSelectedRevision(data.current_revision?.id ?? null);
 					setNotice(
@@ -360,17 +470,49 @@ export default function App() {
 							? "Mock generation complete. The candidate is ready for human review."
 							: `Generation failed: ${result.failure_code ?? result.safe_failure_code ?? "attempt interrupted"}. The source is preserved. Choose Generate candidate to retry.`,
 					);
-					await loadQueue(undefined, true);
+					setRequests((previous) =>
+						previous.map((request) => ({
+							...request,
+							cycles: request.cycles.map((item) =>
+								item.id === cycleId
+									? {
+											...item,
+											...data.cycle,
+											withdrawn: data.snapshot?.withdrawn ?? false,
+											approval_id: data.approval?.id ?? null,
+											validation_status: data.current_revision
+												? data.findings.some(
+														(finding) => finding.severity === "blocking",
+													)
+													? "fail"
+													: "pass"
+												: null,
+										}
+									: item,
+							),
+						})),
+					);
 					return;
 				}
+				failures = 0;
+				setReconnecting(false);
 			} catch (err) {
-				if (stopped) return;
-				if (err instanceof ApiError && err.status === 429)
-					delay = Math.max(delay, err.retryAfter * 1000);
-				else {
+				if (stopped || controller.signal.aborted) return;
+				const status = err instanceof ApiError ? err.status : 0;
+				if (status >= 400 && status < 500 && status !== 408 && status !== 429) {
+					stop();
+					setReconnecting(false);
 					report(err);
 					return;
 				}
+				failures += 1;
+				delay = Math.max(
+					delay,
+					Math.min(30000, 1000 * 2 ** Math.min(failures, 5)),
+				);
+				if (err instanceof ApiError && status === 429)
+					delay = Math.max(delay, err.retryAfter * 1000);
+				setReconnecting(true);
 			}
 			if (!stopped) timer = setTimeout(poll, delay);
 		};
@@ -378,22 +520,19 @@ export default function App() {
 			poll,
 			document.visibilityState === "hidden" ? 5000 : 1000,
 		);
-		return () => {
-			stopped = true;
-			clearTimeout(timer);
-			controller.abort();
-		};
+		return stop;
 	}, [
 		session,
 		cycle?.id,
 		cycle?.active_attempt_id,
 		cycle?.status,
-		loadQueue,
+		navigating,
+		readRevisions,
 		report,
 	]);
 
 	async function createRequest() {
-		await run(async () => {
+		await navigate(async () => {
 			const result = await mutate<Detail>("/requests");
 			await loadQueue();
 			await loadCycle(result.cycle.id);
@@ -480,7 +619,7 @@ export default function App() {
 		reasonValue: "correct_source" | "regenerate" | "restart_after_rejection",
 	) {
 		if (cycle)
-			await run(async () => {
+			await navigate(async () => {
 				const result = await mutate<{
 					cycle?: Cycle;
 					cycle_id?: string;
@@ -534,6 +673,34 @@ export default function App() {
 		);
 		setDirty(true);
 	}
+	async function selectRevision(id: string) {
+		if (busy || id === selectedRevision || !(await confirmDiscard()) || !cycle)
+			return;
+		await run(async () => {
+			if (
+				id !== detail.current_revision?.id &&
+				!loadedRevisions.some((revision) => revision.id === id)
+			) {
+				const result = await api<{ revision: Revision }>(
+					`/cycles/${cycle.id}/revisions/${id}`,
+				);
+				setLoadedRevisions((previous) => [...previous, result.revision]);
+			}
+			setSelectedRevision(id);
+		});
+	}
+	async function loadMoreRevisions() {
+		if (!cycle || !revisionPage?.next_cursor) return;
+		await run(async () => {
+			const next = await api<RevisionPage>(
+				`/cycles/${cycle.id}/revisions?cursor=${encodeURIComponent(revisionPage.next_cursor!)}`,
+			);
+			setRevisionPage({
+				revisions: [...revisionPage.revisions, ...next.revisions],
+				next_cursor: next.next_cursor,
+			});
+		});
+	}
 	const fieldErrors: { path: string; message: string }[] =
 		error?.fields && Array.isArray(error.fields)
 			? error.fields.map((value) =>
@@ -581,16 +748,16 @@ export default function App() {
 	const revisionOptions = [
 		...new Map(
 			[
-				...(history?.revisions ?? []),
+				...(revisionPage?.revisions ?? []),
 				...(detail?.current_revision ? [detail.current_revision] : []),
 			].map((revision) => [revision.id, revision]),
 		).values(),
 	].sort((a, b) => a.sequence - b.sequence);
-	const historicalRevision = history?.revisions.find(
+	const historicalRevision = loadedRevisions.find(
 		(revision) => revision.id === selectedRevision,
 	);
 	const displayRevision = historicalRevision ?? detail?.current_revision;
-	const originalRevision = history?.revisions.find(
+	const originalRevision = loadedRevisions.find(
 		(revision) => revision.origin === "mock",
 	);
 	const restore = detail?.snapshot ? compose(detail.snapshot.source) : null;
@@ -672,6 +839,9 @@ export default function App() {
 				>
 					{notice}
 				</div>
+				{reconnecting && (
+					<p role="status">Connection interrupted. Reconnecting…</p>
+				)}
 				{error && (
 					<div
 						className="error-summary"
@@ -877,17 +1047,13 @@ export default function App() {
 														cycle?.id === item.id ? "page" : undefined
 													}
 													disabled={busy}
-													onClick={() =>
-														run(async () => {
-															if (dirty) {
-																setNotice(
-																	"Unsaved edits were discarded when opening a different cycle.",
-																);
-															}
-															await loadCycle(item.id);
-															setError(null);
-														})
-													}
+													onClick={() => {
+														if (cycle?.id !== item.id)
+															void navigate(async () => {
+																await loadCycle(item.id);
+																setError(null);
+															});
+													}}
 												>
 													<span className="queue-title">
 														Cycle {cycleIndex + 1}
@@ -1483,35 +1649,47 @@ export default function App() {
 																		detail.current_revision.sequence}
 																</h3>
 															</div>
-															<label className="revision-select">
-																View revision
-																<select
-																	value={
-																		selectedRevision ??
-																		detail.current_revision.id
-																	}
-																	onChange={(event) =>
-																		setSelectedRevision(event.target.value)
-																	}
-																>
-																	{revisionOptions.map((revision) => (
-																		<option
-																			key={revision.id}
-																			value={revision.id}
-																		>
-																			#{revision.sequence} · {revision.origin}
-																			{revision.id ===
-																			detail.cycle.current_revision_id
-																				? " · current"
-																				: ""}
-																			{revision.id ===
-																			detail.approval?.revision_id
-																				? " · approved"
-																				: ""}
-																		</option>
-																	))}
-																</select>
-															</label>
+															<div className="revision-controls">
+																<label className="revision-select">
+																	View revision
+																	<select
+																		aria-disabled={busy}
+																		value={
+																			selectedRevision ??
+																			detail.current_revision.id
+																		}
+																		onChange={(event) =>
+																			selectRevision(event.target.value)
+																		}
+																	>
+																		{revisionOptions.map((revision) => (
+																			<option
+																				key={revision.id}
+																				value={revision.id}
+																			>
+																				#{revision.sequence} · {revision.origin}
+																				{revision.id ===
+																				detail.cycle.current_revision_id
+																					? " · current"
+																					: ""}
+																				{revision.id ===
+																				detail.approval?.revision_id
+																					? " · approved"
+																					: ""}
+																			</option>
+																		))}
+																	</select>
+																</label>
+																{revisionPage?.next_cursor && (
+																	<button
+																		className="button secondary"
+																		disabled={busy}
+																		onClick={loadMoreRevisions}
+																	>
+																		Load more revisions
+																	</button>
+																)}
+															</div>
 														</div>
 														<p className="help-text code">
 															Revision{" "}
@@ -2074,7 +2252,7 @@ export default function App() {
 						className="text-button"
 						disabled={busy}
 						onClick={() =>
-							run(async () => {
+							navigate(async () => {
 								await mutate("/session", {}, "DELETE");
 								setSession(null);
 								setDetail(null);
@@ -2088,6 +2266,20 @@ export default function App() {
 					</button>
 				)}
 			</footer>
+			{pendingNavigation && (
+				<Dialog
+					title="Discard unsaved changes?"
+					close={() => finishNavigation(false)}
+				>
+					<p>Your changes have not been saved. Discard them to continue?</p>
+					<button
+						className="button danger"
+						onClick={() => finishNavigation(true)}
+					>
+						Discard changes
+					</button>
+				</Dialog>
+			)}
 			{modal && (
 				<Dialog
 					title={
@@ -2123,8 +2315,8 @@ export default function App() {
 						<>
 							<p>
 								Local demo — roles are simulated, not verified identities.
-								Switching replaces the current session. Unsaved edits are
-								discarded.
+								Switching replaces the current session. You can cancel before
+								discarding any unsaved edits.
 							</p>
 							<div className="role-cards">
 								{roles.map((role) => (

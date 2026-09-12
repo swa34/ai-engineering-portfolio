@@ -906,35 +906,33 @@ export function createApp(options: AppOptions = {}) {
 						page.offset,
 					);
 		res.json({
-			requests: rows
-				.slice(0, page.size)
-				.map((request) => ({
-					...request,
-					cycles: all(
-						"SELECT * FROM cycles WHERE request_id=? ORDER BY created_at,id",
-						request.id,
-					).map((cycle) => ({
-						...cycleMeta(cycle),
-						withdrawn: cycle.snapshot_id
-							? Boolean(
-									get(
-										"SELECT id FROM consent_withdrawals WHERE snapshot_id=?",
-										cycle.snapshot_id,
-									),
-								)
-							: false,
-						approval_id:
-							get("SELECT id FROM approvals WHERE cycle_id=?", cycle.id)?.id ??
-							null,
-						validation_status: cycle.current_revision_id
-							? (get(
-									"SELECT status FROM validation_runs WHERE revision_id=? ORDER BY created_at DESC,rowid DESC LIMIT 1",
-									cycle.current_revision_id,
-								)?.status ?? null)
-							: null,
-						provider_mode: "mock",
-					})),
+			requests: rows.slice(0, page.size).map((request) => ({
+				...request,
+				cycles: all(
+					"SELECT * FROM cycles WHERE request_id=? ORDER BY created_at,id",
+					request.id,
+				).map((cycle) => ({
+					...cycleMeta(cycle),
+					withdrawn: cycle.snapshot_id
+						? Boolean(
+								get(
+									"SELECT id FROM consent_withdrawals WHERE snapshot_id=?",
+									cycle.snapshot_id,
+								),
+							)
+						: false,
+					approval_id:
+						get("SELECT id FROM approvals WHERE cycle_id=?", cycle.id)?.id ??
+						null,
+					validation_status: cycle.current_revision_id
+						? (get(
+								"SELECT status FROM validation_runs WHERE revision_id=? ORDER BY created_at DESC,rowid DESC LIMIT 1",
+								cycle.current_revision_id,
+							)?.status ?? null)
+						: null,
+					provider_mode: "mock",
 				})),
+			})),
 			next_cursor: page.next(rows.length > page.size),
 		});
 	});
@@ -975,35 +973,55 @@ export function createApp(options: AppOptions = {}) {
 			page.size + 1,
 			page.offset,
 		);
-		const selected = events
-			.slice(0, page.size)
-			.map((event) => ({
-				...event,
-				related_ids: JSON.parse(event.related_ids),
-			}));
-		const ids = new Set(
-			selected.flatMap((event) => Object.values(event.related_ids)),
-		);
+		const selected = events.slice(0, page.size).map((event) => ({
+			...event,
+			related_ids: JSON.parse(event.related_ids),
+		}));
+		const ids = [
+			...new Set(selected.flatMap((event) => Object.values(event.related_ids))),
+		];
+		const related = (table: string, order: string) =>
+			ids.length
+				? all(
+						`SELECT * FROM ${table} WHERE cycle_id=? AND id IN (${ids.map(() => "?").join(",")}) ORDER BY ${order}`,
+						cycle.id,
+						...ids,
+					)
+				: [];
 		res.json({
-			revisions: all(
-				"SELECT * FROM revisions WHERE cycle_id=? ORDER BY sequence",
-				cycle.id,
-			)
-				.filter((row) => ids.has(row.id))
-				.map(decodeRevision),
-			decisions: all(
-				"SELECT * FROM review_decisions WHERE cycle_id=? ORDER BY created_at,id",
-				cycle.id,
-			).filter((row) => ids.has(row.id)),
-			attempts: all(
-				"SELECT * FROM generation_attempts WHERE cycle_id=? ORDER BY started_at,id",
-				cycle.id,
-			)
-				.filter((row) => ids.has(row.id))
-				.map(attemptSafe),
+			revisions: related("revisions", "sequence").map(decodeRevision),
+			decisions: related("review_decisions", "created_at,id"),
+			attempts: related("generation_attempts", "started_at,id").map(
+				attemptSafe,
+			),
 			events: selected,
 			next_cursor: page.next(events.length > page.size),
 		});
+	});
+	api.get("/cycles/:cycleId/revisions", (req, res) => {
+		const cycle = accessCycle(String(req.params.cycleId), res.locals.session);
+		const page = readPage(req);
+		const revisions = all(
+			"SELECT id,cycle_id,snapshot_id,sequence,parent_revision_id,origin,attempt_id,author_actor,digest,created_at FROM revisions WHERE cycle_id=? ORDER BY sequence LIMIT ? OFFSET ?",
+			cycle.id,
+			page.size + 1,
+			page.offset,
+		);
+		res.json({
+			revisions: revisions.slice(0, page.size),
+			next_cursor: page.next(revisions.length > page.size),
+		});
+	});
+	api.get("/cycles/:cycleId/revisions/:revisionId", (req, res) => {
+		const cycle = accessCycle(String(req.params.cycleId), res.locals.session);
+		const revision = get(
+			"SELECT * FROM revisions WHERE cycle_id=? AND id=?",
+			cycle.id,
+			String(req.params.revisionId),
+		);
+		if (!revision)
+			fail(404, "NOT_FOUND", "The requested record is unavailable.");
+		res.json({ revision: decodeRevision(revision) });
 	});
 	api.put("/cycles/:cycleId/draft", (req, res) => {
 		const wrapper = parse(
@@ -1722,16 +1740,14 @@ export function createApp(options: AppOptions = {}) {
 				sameSite: "strict",
 			});
 		if (safe.retryAfter) res.set("Retry-After", String(safe.retryAfter));
-		res
-			.status(safe.status)
-			.json({
-				error: {
-					code: safe.code,
-					message: safe.message,
-					...(safe.fields ? { fields: safe.fields } : {}),
-					request_id: res.locals.requestId,
-				},
-			});
+		res.status(safe.status).json({
+			error: {
+				code: safe.code,
+				message: safe.message,
+				...(safe.fields ? { fields: safe.fields } : {}),
+				request_id: res.locals.requestId,
+			},
+		});
 	});
 	app.locals.db = db;
 	app.locals.close = () => {

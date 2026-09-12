@@ -6,7 +6,7 @@ serially. Each test resets only that test server's fictional dataset.
 
 The automated checks exercise the visible mock workflow, deliberate approval,
 validation and recovery controls, dialog focus, responsive reflow, print CSS,
-downloaded text, and axe accessibility scans. Browser request monitoring rejects
+downloaded text, and axe accessibility scans. Regression cases cover dirty-navigation cancellation/discard, dirty-only browser unload warnings, polling recovery after network/503 interruptions without another generation, and 22 revisions browsed independently of the audit page. Browser request monitoring rejects
 external HTTP requests during the mock workflow. An automated accessibility pass
 does not establish accessibility conformance.
 
