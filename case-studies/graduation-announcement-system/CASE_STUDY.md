@@ -1,6 +1,6 @@
 # AI-Assisted Graduation Announcement Workflow
 
-**System design — not implemented or evaluated.** All technical behavior below is proposed for an independent demonstration unless explicitly identified otherwise. The demonstration has not been built or evaluated. This document does not describe an employer's actual architecture, workflow, or results.
+**Independent system design and local demonstration.** The local mock workflow is implemented. [Verification evidence](../../demos/graduation-announcement/VERIFICATION.md) records executed checks and remaining manual acceptance work; the design discussion below does not establish production behavior. This document does not describe an employer's actual architecture, workflow, or results.
 
 > This case study and demonstration are independently created, generalized representations of an AI-assisted communications workflow. They contain no employer source code, private repository content, production data, internal prompts, confidential configuration, or personally identifiable student information. All people, institutions, records, and announcements shown in the demonstration are fictional.
 
@@ -87,15 +87,15 @@ Application-level append-only audit events would not by themselves prevent a dat
 
 The intended interface uses semantic HTML, explicit labels, keyboard-operable controls, visible focus indicators, clear field errors, and text labels for status. Asynchronous generation would announce progress and failures without unexpectedly moving focus. Comparison views would have a meaningful reading order and remain usable when stacked on small screens.
 
-Contrast, reduced-motion preferences, and a print-friendly approved preview would be considered from the outset. Automated checks would be supplemented with manual keyboard, zoom, and screen-reader review. Accessibility has not yet been tested; no conformance claim is made.
+Contrast, reduced-motion preferences, and a print-friendly approved preview would be considered from the outset. Automated checks would be supplemented with manual keyboard, zoom, and screen-reader review. Automated browser accessibility checks have run; manual acceptance remains open and no conformance claim is made.
 
 ## 13. Testing and evaluation
 
 Evaluation would use synthetic fixtures and cover factual consistency, unsupported-claim detection, field validation, tone and length, accessibility, injection resistance, approval enforcement, error recovery, and audit history.
 
-The [evaluation matrix](EVALUATION.md) records input conditions, expected behavior, actual behavior, and pass/fail for 44 unexecuted cases. Its coverage includes: a complete record; missing degree; missing consent; injection in a quote; altered major; invented honor; unsupported quotation; inappropriate tone; provider timeout; malformed output; requested revision; regeneration after approval; unauthorized approval; sensitive text; and inaccessible link text. It also covers narrative-only inventions, edited content, and stale approvals.
+The [evaluation matrix](EVALUATION.md) records input conditions, expected behavior, actual behavior, and pass/fail for 44 acceptance cases. Its coverage includes: a complete record; missing degree; missing consent; injection in a quote; altered major; invented honor; unsupported quotation; inappropriate tone; provider timeout; malformed output; requested revision; regeneration after approval; unauthorized approval; sensitive text; and inaccessible link text. It also covers narrative-only inventions, edited content, and stale approvals.
 
-**Application evaluation status: not yet tested.** Actual behavior and results will be populated only after execution. Documentation review is not evidence that the application works.
+**Application evaluation status:** unit/API and browser checks have been executed. The [verification record](../../demos/graduation-announcement/VERIFICATION.md) distinguishes passing automated checks from remaining manual acceptance; documentation review alone is not application evidence.
 
 ## 14. Outcomes
 
@@ -111,7 +111,7 @@ SQLite reduces local setup but is not a substitute for validating a PostgreSQL d
 
 ## 16. Evaluation questions
 
-The evaluation asks whether explicit source boundaries, independently enforced review, and visible validation limitations make the workflow easier to understand and assess. No implementation evidence is available yet.
+The evaluation asks whether explicit source boundaries, independently enforced review, and visible validation limitations make the workflow easier to understand and assess. The [verification record](../../demos/graduation-announcement/VERIFICATION.md) supplies implementation evidence for the local workflow.
 
 ## 17. Future improvements
 
@@ -125,7 +125,7 @@ The planned demo would use fictional North Valley University and synthetic gradu
 
 The interface would use restrained typography, clear structure, mobile-responsive layouts, and accessible controls. It would avoid chatbot framing, decorative AI imagery, invented statistics, and unnecessary animation.
 
-**Current availability: not implemented.**
+**Current availability:** [run the local demonstration](../../demos/graduation-announcement/README.md).
 
 ## 19. Confidentiality disclaimer
 

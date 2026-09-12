@@ -1,6 +1,6 @@
 # Graduation Announcement Demonstration — Security Design
 
-**Security requirements — controls are not implemented or tested.** This is the security design for the local fictional demonstration, not a repository vulnerability report or production assurance. Read the [technical specification](TECHNICAL_SPEC.md), [evaluation matrix](EVALUATION.md), and [disclaimer](DISCLAIMER.md).
+**Security requirements.** The local mock implementation and [verification evidence](../../demos/graduation-announcement/VERIFICATION.md) demonstrate specific controls; this document alone does not establish assurance. This is the security design for the local fictional demonstration, not a repository vulnerability report or production assurance. Read the [technical specification](TECHNICAL_SPEC.md), [evaluation matrix](EVALUATION.md), and [disclaimer](DISCLAIMER.md).
 
 ## Trust boundaries and protected operations
 
@@ -83,4 +83,4 @@ Reset requires the literal confirmation string in the API contract and a dedicat
 
 Implement and execute the applicable [evaluation cases](EVALUATION.md), including direct API authorization, object access, cross-origin requests, malicious source/output rendering, stale writes, interrupted attempts, audit rollback, withdrawal, and reset races. Documentation review alone cannot pass these tests.
 
-Real identity, deployment hardening, encrypted backups, regulatory analysis, external provider retention, intrusion detection, and tamper-evident external audit storage are outside the local demonstration scope. They require their own design and evidence before any production use. The current application/security evaluation status is **not yet tested**.
+Real identity, deployment hardening, encrypted backups, regulatory analysis, external provider retention, intrusion detection, and tamper-evident external audit storage are outside the local demonstration scope. They require their own design and evidence before any production use. Executed application and security-control checks are recorded in the [verification evidence](../../demos/graduation-announcement/VERIFICATION.md); they do not establish production assurance.

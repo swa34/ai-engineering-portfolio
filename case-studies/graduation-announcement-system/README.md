@@ -2,7 +2,7 @@
 
 A system design for an AI-assisted communications workflow using a fictional university and synthetic graduate records. It examines how to preserve submitted facts, validate generated content, and require a deliberate human decision before an announcement can be exported.
 
-**Status:** Design documentation is available. The demonstration is not yet implemented; application, security, and accessibility tests have not been run.
+**Status:** A local mock demonstration is implemented. See [run instructions](../../demos/graduation-announcement/README.md) and the [verification record](../../demos/graduation-announcement/VERIFICATION.md) for executed checks and remaining manual acceptance work.
 
 ## Engineering focus
 
@@ -11,7 +11,7 @@ A system design for an AI-assisted communications workflow using a fictional uni
 - Source-to-draft comparison, visible validation findings, and accessible review controls.
 - A local mock provider specified for repeatable scenarios without credentials or paid requests.
 
-The proposed stack uses React/Vite, TypeScript, Node.js/Express, and SQLite. Mock generation would demonstrate the workflow; it would not establish live-model performance.
+The demonstration uses React/Vite, TypeScript, Node.js/Express, and SQLite. Mock generation demonstrates the workflow; it does not establish live-model performance.
 
 ## Documentation
 

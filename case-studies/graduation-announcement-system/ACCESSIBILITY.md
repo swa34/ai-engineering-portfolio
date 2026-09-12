@@ -1,6 +1,6 @@
 # Graduation Announcement Demonstration — Accessibility Requirements
 
-**Accessibility requirements — not implemented or evaluated.** These are testable design requirements for the fictional local demonstration, not an accessibility conformance claim. See the [technical specification](TECHNICAL_SPEC.md) and [evaluation matrix](EVALUATION.md).
+**Accessibility requirements.** The interface is implemented; [verification evidence](../../demos/graduation-announcement/VERIFICATION.md) distinguishes automated checks from the remaining manual accessibility acceptance work. These are testable design requirements for the fictional local demonstration, not an accessibility conformance claim. See the [technical specification](TECHNICAL_SPEC.md) and [evaluation matrix](EVALUATION.md).
 
 ## Structure and navigation
 
@@ -18,11 +18,11 @@ Explain editing constraints beside the editor: wording must match the selected s
 
 ## Generation and review
 
-Announce generation start, completion, and recoverable failure through a polite live region. Do not move focus on polling, completion, or queue refresh, and do not repeatedly announce unchanged status. Keep a stable attempt/status area and provide an explicit retry button on failure. Use assertive announcements only for errors requiring immediate action, not routine status updates.
+Announce generation start, completion, and recoverable failure through a polite live region. Do not move focus on polling, completion, or queue refresh, and do not repeatedly announce unchanged status. Keep a stable attempt/status area and provide an explicit retry button on generation failure. Transient read interruptions show a reconnecting status while polling backs off; recovered reads must not start another generation. Use assertive announcements only for errors requiring immediate action, not routine status updates.
 
 Source, original generated content, human revision, validation findings, and history appear in that reading order. On narrow screens they stack in the same order; the DOM order must not depend on visual column placement. Use semantic tables only for genuinely tabular facts, with captions and column headings. Identify inserted/removed text with readable labels or annotations; color and strikethrough alone are insufficient. Offer complete readable source and revision text alongside differences.
 
-Changing the selected revision updates its visible heading and status without losing keyboard focus. Clearly distinguish historical revisions from the current revision and identify the exact approved revision. Stale-edit/approval errors explain that another action changed the cycle, preserve unsaved text, and offer refresh without automatically retrying a decision. Consent withdrawal remains visible in history and disables future protected actions with an explanation.
+Changing the selected revision updates its visible heading and status without losing keyboard focus. Revision pagination is available beside the selector, independently of audit history. Navigation away from unsaved source or revision edits opens a discard-confirmation dialog with Cancel initially focused; cancellation preserves edits and returns focus. Reload and close warnings are registered only while edits are dirty. Clearly distinguish historical revisions from the current revision and identify the exact approved revision. Stale-edit/approval errors explain that another action changed the cycle, preserve unsaved text, and offer refresh without automatically retrying a decision. Consent withdrawal remains visible in history and disables future protected actions with an explanation.
 
 ## Visual, responsive, and print behavior
 
@@ -38,4 +38,4 @@ Automated browser accessibility checks cover role selection, invalid form, submi
 
 Manual acceptance requires keyboard completion of the main flow and recovery paths, focus inspection, zoom/reflow, contrast measurement, reduced motion, and print preview. Use a supported browser/screen-reader combination available to the evaluator; record the exact browser, OS, assistive technology, and versions actually used. Check form labels/errors, review reading order, status announcements, dialogs, and export links with that combination. If assistive technology is unavailable, mark those cases untested and retain the release gate rather than inferring success.
 
-Record expected behavior, actual observations, pass/fail, evidence, and known limitations in the [evaluation matrix](EVALUATION.md). Accessibility status remains **not yet tested** until these checks run on an implemented application.
+Record expected behavior, actual observations, pass/fail, evidence, and known limitations in the [evaluation matrix](EVALUATION.md). Automated browser outcomes are recorded in the [verification evidence](../../demos/graduation-announcement/VERIFICATION.md). Manual screen-reader, actual zoom, control/focus contrast, and print-preview acceptance remain open; no conformance claim is made.

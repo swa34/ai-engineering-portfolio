@@ -1,0 +1,37 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.5.13/schema.json",
+	"files": {
+		"includes": [
+			"**",
+			"!dist",
+			"!data",
+			"!test-results",
+			"!playwright-report",
+			"!package-lock.json"
+		]
+	},
+	"formatter": {
+		"enabled": true
+	},
+	"assist": {
+		"enabled": false
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"preset": "none",
+			"correctness": {
+				"noConstAssign": "error",
+				"noInvalidConstructorSuper": "error",
+				"noUndeclaredVariables": "error",
+				"noUnreachable": "error",
+				"useExhaustiveDependencies": "error",
+				"useHookAtTopLevel": "error"
+			},
+			"suspicious": {
+				"noDuplicateObjectKeys": "error",
+				"noDuplicateParameters": "error"
+			}
+		}
+	}
+}
