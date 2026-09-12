@@ -6,8 +6,10 @@
 - Use independently written content and fictional data. Leave unconfirmed facts as Scott review placeholders.
 - 2026-09-12: Scott approved Phase 2 and requested the `swa34/` branch prefix.
 - 2026-09-12: Scott authorized preparing a pull request for review. Commit and push are authorized for this documentation milestone; merging and Phase 3 remain pending review.
-- Active branch: `swa34/graduation-announcement-showcase`.
-- Phase 3 requires approval after review of the Phase 2 drafts. Implementation requires approval of the Phase 3 specification.
+- 2026-09-12: Scott explicitly requested writing Phase 3 after creating its branch. This authorizes specification work; personal claims and public release remain separate review items.
+- 2026-09-12: Scott explicitly authorized committing and pushing the Phase 3 documents and opening a PR for review. Implementation and merging remain pending approval.
+- Active branch: `swa34/phase-3-technical-specification`.
+- Implementation requires approval of the Phase 3 specification.
 - Do not commit, push, merge, deploy, or publish without explicit authorization.
 
 ## Execution plan
@@ -22,10 +24,11 @@
 - [x] Phase 2: Address PR review consistency comments and verify local agent files remain excluded.
 - [x] Phase 2: Confirm all four Mermaid diagrams render in GitHub's Markdown preview.
 - [ ] Before public portfolio release: Obtain Scott's license choice; do not select a license on his behalf.
-- [ ] Phase 2: Obtain Scott's approval of the drafts before Phase 3.
-- [ ] Phase 3: Define architecture, synthetic records, API contracts, and structured output schema.
-- [ ] Phase 3: Specify factual validation, human review, state transitions, and security controls.
-- [ ] Phase 3: Specify evaluation cases and obtain approval before implementation.
+- [x] Obtain Scott's authorization to proceed to Phase 3 (explicit drafting request on 2026-09-12).
+- [x] Phase 3: Define architecture, synthetic records, API contracts, and structured output schema.
+- [x] Phase 3: Specify factual validation, human review, state transitions, and security controls.
+- [x] Phase 3: Specify evaluation cases and expected results.
+- [ ] Phase 3: Obtain owner approval of the specification before implementation.
 - [ ] Phase 4: Build the independent demonstration with a default mock provider.
 - [ ] Phase 4: Implement validation, revision history, human approval, export, and failure recovery.
 - [ ] Phase 4: Add automated tests using synthetic data and provider fault fixtures.
@@ -33,6 +36,14 @@
 - [ ] Phase 5: Capture actual demo screenshots and add approved résumé wording and metadata.
 - [ ] Phase 6: Run linting, automated tests, accessibility checks, and a secret/content scan.
 - [ ] Phase 6: Verify setup instructions from a clean start and record actual results and limitations.
+
+## Phase 3 execution plan
+
+- [x] Read the Phase 2 requirements and identify unresolved design decisions.
+- [x] Define the local architecture, fictional fixtures, schemas, persistence invariants, API contracts, and failure recovery.
+- [x] Specify security boundaries, accessibility behavior, and an executable evaluation matrix in dedicated documents.
+- [x] Review cross-document consistency and verify local links, structured examples, required coverage, and patch hygiene.
+- [x] Record verification evidence and leave implementation pending owner review.
 
 ## Phase 2 success criteria
 
@@ -81,3 +92,60 @@ Final staged-content verification passed for seven files (six Markdown documents
 Repeated document checks passed for six tracked Markdown files, 14 local links to tracked files, 19 numbered sections, seven exact placeholders, and four Mermaid blocks with balanced sequence controls. A second read-only review found no blocking consistency issues. Git inventory and every reachable commit contain no Codex configuration, agent configuration, or local memory files; `.Codex/`, `.codex/`, and `.agents/` are ignored and remain local only.
 
 2026-09-12: GitHub's preview exposed semicolons being interpreted as Mermaid statement separators: the state diagram gained stray nodes and the sequence diagram failed to parse. Replaced those separators in diagram labels and verified all four rendered diagrams on GitHub at commit `7582f71`. The corrected state and sequence views were also inspected visually. This closes the outstanding rendering check; owner approval and licensing remain pending.
+
+## Phase 3 review record — 2026-09-12
+
+Scott explicitly requested writing the specification on `swa34/phase-3-technical-specification`. That instruction supersedes the historical pending-Phase-3 gate above; it does not approve personal claims, implementation, licensing, or public release.
+
+Drafted four dedicated documents:
+
+- [Technical specification](../case-studies/graduation-announcement-system/TECHNICAL_SPEC.md): local architecture, complete fictional source and candidate examples, strict schema rules, canonical prose composition, storage invariants, API contracts, concurrency, review decisions, immutable approved exports, and recovery.
+- [Security design](../case-studies/graduation-announcement-system/SECURITY_DESIGN.md): simulated session roles, ownership checks, resource limits, input screening, transactional audit history, consent withdrawal, and disposable dataset reset.
+- [Accessibility requirements](../case-studies/graduation-announcement-system/ACCESSIBILITY.md): keyboard and screen-reader flows, labels/errors, review order, status announcements, contrast/reflow, and print behavior.
+- [Evaluation plan](../case-studies/graduation-announcement-system/EVALUATION.md): 44 explicit cases with expected outcomes and unexecuted actual/pass-fail fields.
+
+The draft chooses controlled source-based prose over arbitrary paraphrase, separate cycle/revision/approval identities, conspicuously simulated local sessions, and local whole-dataset reset. These are proposed implementation decisions awaiting owner review. Both overviews link the deliverables, and the conceptual architecture points to the detailed contracts while retaining its existing diagrams.
+
+Verification evidence:
+
+- The documentation check explicitly inspected six tracked Markdown documents plus the four named new specification documents; ignored local agent files were excluded from the deliverable count.
+- All 46 local Markdown links resolve to files in that ten-document deliverable set. Markdown fences are balanced and no trailing whitespace was found, including in the new files.
+- Both JSON examples parse. The candidate's facts and all three prose outputs match the source and literal composition rules; example output bounds and byte limits pass.
+- All 44 evaluation IDs are unique and sequential; every actual-result cell remains “Not run” and every pass/fail cell remains “Not tested.”
+- The case study retains its 19 numbered sections and seven exact owner placeholders. All four Mermaid blocks are byte-for-byte unchanged from HEAD; no new diagram-rendering claim is made.
+- An independent read-only specification review identified contract gaps in sensitive-output handling, session replacement, access-denial status, capacity/recovery, decision storage, restoring malformed content, and generation version binding. Those gaps were corrected in the draft.
+- `git diff --check` passed. At completion of drafting, changes were documentation only and uncommitted on the Phase 3 branch; no push, deployment, or publication had been performed.
+
+Limitations and next gate: no application has been built or tested, and document/example checks do not validate implemented security or accessibility. Implementation starts only after Scott approves this specification. Personal-role/outcome placeholders and license choice remain owner decisions.
+
+## Phase 3 PR preparation
+
+- [x] Recheck document examples, local links, expected evaluation coverage, and patch hygiene.
+- [x] Verify the exact staged file inventory and commit the Phase 3 documentation.
+- [x] Push `swa34/phase-3-technical-specification` and open its review PR against `main`.
+- [x] Verify the remote branch and PR point to the committed specification.
+
+The PR will describe the proposed architecture, API and storage contracts, constrained prose validation, review/approval behavior, security and accessibility requirements, and 44 unexecuted evaluation cases. Its validation record is limited to document checks and independent specification review. Local agent memory and configuration stay excluded from Git.
+
+2026-09-12: Committed the specification as `efa7ca0`, pushed the Phase 3 branch, and opened [PR #2](https://github.com/swa34/ai-engineering-portfolio/pull/2) against `main`. GitHub readback confirmed the PR is open for review, references that specification commit, and includes exactly the eight intended documentation files. The staged inventory excludes local agent files, the limited credential-pattern scan found no matches, and the independent scope review found no publication blocker. Merging and implementation remain pending approval.
+
+## Phase 3 review-comment updates
+
+2026-09-12: Scott approved addressing all seven assessed review comments. This follow-up updates the specification and the existing PR; it does not start implementation or authorize merging.
+
+- [x] Reconcile Unicode/serialized-byte limits and polling/read budgets in one shared limits definition.
+- [x] Separate structural tone checks from semantic findings and remove the unreachable length finding.
+- [x] Name the draft schema, enumerate nullability, and clarify server-created copied drafts and session-scoped replay.
+- [x] Extend existing evaluation cases, verify boundaries and cross-document consistency, and independently review the changes.
+- [x] Commit and push the corrections to PR #2 and verify its head commit.
+
+The shared resource table now defines provider and request byte caps sized for compact Unicode-escaped JSON, plus a read budget with headroom for two active pollers and ordinary navigation. Known template mismatches are semantic findings; unknown IDs and excessive field lengths fail schema validation. DraftSource explicitly enumerates nullable fields and the server-created copied-content exception. Receipt replay is limited to the issuing valid session, with expiry/reset and role replacement covered in the evaluation plan.
+
+Review-update verification:
+
+- Maximum-field synthetic candidate fixtures serialize to 29,863 bytes in direct UTF-8 and 88,583 bytes with conventional Unicode escaping; escaping every string and key produces 90,198 bytes. The complete revision wrapper also fits its revised cap, and each encoding round-trips to the same JSON value.
+- Budget arithmetic admits 120 attempt polls plus 60 ordinary reads per rolling minute; excess traffic remains subject to throttling and Retry-After. This is a workload calculation, not a measured application result.
+- All 48 local links resolve across ten tracked Markdown documents. Both JSON examples remain valid, all 44 evaluation rows remain unexecuted, all 19 case-study sections and seven placeholders remain intact, and the four Mermaid blocks remain unchanged.
+- Independent review found no blocking gap in the seven corrections. Its reset/receipt wording clarification was incorporated. Boundary/document checks and `git diff --check` pass; no application tests have been run.
+
+2026-09-12: Pushed review-correction commit `bc93bfe` to PR #2. GitHub readback confirmed that commit as the open PR's head. The seven reviewed points are addressed in the specification; implementation and merging remain pending approval.
