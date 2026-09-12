@@ -32,7 +32,7 @@ flowchart TD
     P --> Q[Preview or export approved version with fictional label]
     P -->|Request regeneration using unchanged facts| R{Authorized and source consented?}
     R -->|No| Q
-    R -->|Yes| T[Create separate Submitted cycle using existing snapshot; preserve approved artifact]
+    R -->|Yes| T[Create separate Submitted cycle using existing snapshot, preserve approved artifact]
     T --> S
 ```
 
@@ -84,11 +84,11 @@ The diagram shows intended responsibilities, not a set of microservices: these m
 stateDiagram-v2
     [*] --> Draft
     [*] --> Submitted: New cycle for authorized regeneration using existing consented snapshot
-    Draft --> Submitted: Validate facts and consent; freeze snapshot
+    Draft --> Submitted: Validate and freeze consented facts
     Submitted --> Generating: Start generation attempt
-    Generating --> Submitted: Timeout or malformed response; record failure
+    Generating --> Submitted: Record provider failure
     Generating --> NeedsReview: Save structured candidate and validation findings
-    NeedsReview --> NeedsReview: Save human revision and revalidate
+    NeedsReview --> NeedsReview: Edit and revalidate
     NeedsReview --> ChangesRequested: Reviewer requests revision
     ChangesRequested --> Generating: Explicit generation of another candidate
     NeedsReview --> Rejected: Authorized reviewer rejects
@@ -130,22 +130,22 @@ sequenceDiagram
     API->>V: Validate fields, lengths, options, and consent
     alt Invalid source input
         V-->>API: Field errors
-        API-->>UI: Actionable validation errors; no generation
+        API-->>UI: Actionable validation errors, no generation
     else Valid source input
         V-->>API: Validated source facts
         API->>DB: Transaction: preserve snapshot and audit submission
         API->>DB: Record generation attempt and status
         API->>AI: Request structured draft from minimal untrusted source data
         alt Timeout or provider error
-            API->>DB: Record redacted failure; return to Submitted
-            API-->>UI: Generation failed; offer explicit retry
+            API->>DB: Record redacted failure, return to Submitted
+            API-->>UI: Generation failed, offer explicit retry
         else Provider responds
             AI-->>API: Untrusted structured-output candidate
             API->>V: Validate output schema
             alt Malformed output
                 V-->>API: Reject response
-                API->>DB: Record safe failure; return to Submitted
-                API-->>UI: No approvable draft; offer retry
+                API->>DB: Record safe failure, return to Submitted
+                API-->>UI: No approvable draft, offer retry
             else Schema-conforming output
                 API->>V: Compare factual fields and narrative with snapshot
                 V-->>API: Findings, including blocking failures if present
@@ -183,10 +183,10 @@ sequenceDiagram
         UI->>API: Request regeneration using existing source snapshot
         API->>API: Check authorization and source consent
         alt Unauthorized or consent absent
-            API-->>UI: Deny regeneration; retain approved version
+            API-->>UI: Deny regeneration, retain approved version
         else Eligible for regeneration
-            API->>DB: Create separate Submitted cycle referencing same snapshot; audit action
-            API-->>UI: Approved version preserved; explicit generation and review required
+            API->>DB: Create separate Submitted cycle referencing same snapshot, audit action
+            API-->>UI: Approved version preserved, explicit generation and review required
         end
     end
 ```
