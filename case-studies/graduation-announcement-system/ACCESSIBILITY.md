@@ -1,6 +1,6 @@
 # Graduation Announcement Demonstration — Accessibility Requirements
 
-**Accessibility requirements — not implemented or evaluated.** These are testable design requirements for the fictional local demonstration, not an accessibility conformance claim. See the [technical specification](TECHNICAL_SPEC.md) and [evaluation matrix](EVALUATION.md).
+**Accessibility requirements.** The interface is implemented; [verification evidence](../../demos/graduation-announcement/VERIFICATION.md) distinguishes automated checks from the remaining manual accessibility acceptance work. These are testable design requirements for the fictional local demonstration, not an accessibility conformance claim. See the [technical specification](TECHNICAL_SPEC.md) and [evaluation matrix](EVALUATION.md).
 
 ## Structure and navigation
 
@@ -38,4 +38,4 @@ Automated browser accessibility checks cover role selection, invalid form, submi
 
 Manual acceptance requires keyboard completion of the main flow and recovery paths, focus inspection, zoom/reflow, contrast measurement, reduced motion, and print preview. Use a supported browser/screen-reader combination available to the evaluator; record the exact browser, OS, assistive technology, and versions actually used. Check form labels/errors, review reading order, status announcements, dialogs, and export links with that combination. If assistive technology is unavailable, mark those cases untested and retain the release gate rather than inferring success.
 
-Record expected behavior, actual observations, pass/fail, evidence, and known limitations in the [evaluation matrix](EVALUATION.md). Accessibility status remains **not yet tested** until these checks run on an implemented application.
+Record expected behavior, actual observations, pass/fail, evidence, and known limitations in the [evaluation matrix](EVALUATION.md). Automated browser outcomes are recorded in the [verification evidence](../../demos/graduation-announcement/VERIFICATION.md). Manual screen-reader, actual zoom, control/focus contrast, and print-preview acceptance remain open; no conformance claim is made.

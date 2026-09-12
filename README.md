@@ -6,7 +6,7 @@ Independent case studies exploring applied AI, backend architecture, and human r
 
 A system design for turning structured graduate information into announcements while preserving source facts and requiring human approval. The fictional North Valley University example explores constrained drafting, server-side validation, revision history, and approval tied to a specific content version.
 
-**Status:** Design documentation is available. The demonstration is not yet implemented, and application tests have not been run.
+**Status:** A local mock demonstration is implemented. See the [setup instructions](demos/graduation-announcement/README.md) and [verification record](demos/graduation-announcement/VERIFICATION.md) for executed checks and remaining manual acceptance work.
 
 Start with the [project overview](case-studies/graduation-announcement-system/README.md) or [case study](case-studies/graduation-announcement-system/CASE_STUDY.md).
 

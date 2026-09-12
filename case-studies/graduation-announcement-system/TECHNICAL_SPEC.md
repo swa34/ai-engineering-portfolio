@@ -1,6 +1,6 @@
 # Graduation Announcement Demonstration — Technical Specification
 
-**Design specification — not implemented or tested.** This document specifies an independently authored local demonstration using fictional data. Nothing here is an implementation result or a claim about an employer system. See the [disclaimer](DISCLAIMER.md).
+**Implementation contract.** The local mock demonstration is implemented; [verification evidence](../../demos/graduation-announcement/VERIFICATION.md) records what was exercised and the remaining acceptance checks. This document specifies an independently authored local demonstration using fictional data. Nothing here is an implementation result or a claim about an employer system. See the [disclaimer](DISCLAIMER.md).
 
 The [case study](CASE_STUDY.md) establishes the intended workflow. This specification resolves its open decisions; the [conceptual diagrams](ARCHITECTURE.md) remain a higher-level view. Companion requirements are in [security design](SECURITY_DESIGN.md), [accessibility](ACCESSIBILITY.md), and [evaluation](EVALUATION.md).
 
@@ -19,22 +19,20 @@ The demonstration will let a contributor submit fictional graduate facts, explic
 
 No email, social publishing, external data import, file upload, real student accounts, institutional authentication, dashboards of invented metrics, or production deployment is in scope. PostgreSQL migration and live-model evaluation are follow-on work. Dependency versions and lockfiles will be selected and verified at implementation time, not asserted as tested here.
 
-## 2. Proposed implementation layout
+## 2. Implementation layout
 
-All application code will live in `demos/graduation-announcement/`. These paths are planned, not existing deliverables.
+Application code lives in `demos/graduation-announcement/`. The initial local implementation keeps the API, workflow, validation orchestration, and mock lifecycle together in one server module; shared schemas and persistence are separate modules.
 
 ```text
 demos/graduation-announcement/
   web/                 React screens, accessible forms, comparison and history
   server/
-    api/               Session, authorization, request parsing and safe responses
-    workflow/          Transactions, transitions, approval and export
-    validation/        Source checks, canonical composition, findings
-    providers/         Mock adapter and explicitly selected test faults
-    storage/           SQLite migrations and repositories
-  shared/              Runtime schemas and inferred TypeScript contracts
-  fixtures/            Independently authored fictional records
-  tests/               Contract, workflow, provider fault and browser tests
+    app.ts             API policy, transactional workflow, mock lifecycle
+    storage.ts         SQLite schema initialization and database connections
+    index.ts           Loopback startup, built UI serving and shutdown
+  shared/contracts.ts  Runtime schemas, canonical composition and findings
+  fixtures/records.ts  Independently authored fictional records
+  tests/               Contract, workflow, resource and browser tests
   data/                Ignored disposable SQLite database
 ```
 

@@ -1,8 +1,8 @@
 # Architecture and Workflow
 
-**Conceptual design — not implemented or evaluated.** These independently proposed designs use only fictional demonstration data and do not document any private system. See the [disclaimer](DISCLAIMER.md) and [case study](CASE_STUDY.md).
+**Conceptual architecture.** A local mock demonstration now implements this workflow; [verification evidence](../../demos/graduation-announcement/VERIFICATION.md) records the tested behavior. These independently proposed designs use only fictional demonstration data and do not document any private system. See the [disclaimer](DISCLAIMER.md) and [case study](CASE_STUDY.md).
 
-The proposed stack is React/Vite, TypeScript, Node.js/Express, runtime schema validation, and SQLite locally. The [technical specification](TECHNICAL_SPEC.md) now defines exact contracts, authorization mechanisms, storage constraints, and failure semantics. These diagrams remain conceptual; a PostgreSQL production path would need separate migration and integration verification.
+The local stack is React/Vite, TypeScript, Node.js/Express, runtime schema validation, and SQLite locally. The [technical specification](TECHNICAL_SPEC.md) now defines exact contracts, authorization mechanisms, storage constraints, and failure semantics. These diagrams remain conceptual; a PostgreSQL production path would need separate migration and integration verification.
 
 ## 1. End-to-end workflow
 
