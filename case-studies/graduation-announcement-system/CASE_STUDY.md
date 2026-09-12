@@ -99,9 +99,9 @@ Checks would run again after human edits. A passing result would mean that docum
 
 ## 10. Human-review process
 
-The review view would show submitted facts, generated content, validation findings, human edits, and approval state together. The AI version and each human revision would remain distinguishable. Reviewers would explicitly approve, reject, or request revision, with actions recorded in history.
+The review view would show submitted facts, generated content, validation findings, human edits, and approval state together. The AI version and each human revision would remain distinguishable. Editing would be optional: a reviewer could approve an unchanged generated version if it passes all checks. Reviewers would explicitly approve, reject, or request revision, with actions recorded in history. Rejection would end that review cycle; requesting changes would keep it open for revision and review.
 
-Approval would require an authorized reviewer, affirmative source consent, passing checks, and the current content version. The server would reject stale approval attempts. Regeneration would create a separate candidate while retaining the approved artifact and its audit history; the new candidate would require its own review. Approval and the corresponding audit event should be persisted atomically.
+Approval would require an authorized reviewer, affirmative source consent, passing checks, and the current content version. The server would reject stale approval attempts. Authorized regeneration after approval would create a separate Submitted review cycle using the existing consented source snapshot, without contributor resubmission or re-freezing the facts. It would preserve the approved artifact and its audit history while requiring explicit generation, validation, and human review for the new candidate. Corrected source facts would instead start at Draft and require validation, submission, and a new immutable snapshot. Approval and the corresponding audit event should be persisted atomically.
 
 ## 11. Security and privacy
 

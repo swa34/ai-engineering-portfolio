@@ -19,6 +19,8 @@
 - [x] Phase 2: Draft four Mermaid diagrams and the confidentiality disclaimer.
 - [x] Phase 2: Check completeness, links, claims, and diagram consistency.
 - [x] Phase 2: Commit the documentation milestone, push the feature branch, and open a review PR.
+- [x] Phase 2: Address PR review consistency comments and verify local agent files remain excluded.
+- [ ] Before public portfolio release: Obtain Scott's license choice; do not select a license on his behalf.
 - [ ] Phase 2: Obtain Scott's approval of the drafts before Phase 3.
 - [ ] Phase 3: Define architecture, synthetic records, API contracts, and structured output schema.
 - [ ] Phase 3: Specify factual validation, human review, state transitions, and security controls.
@@ -43,11 +45,11 @@
 
 Phase 1: The repository had no tracked files, application, or commits. The recommended stack is React with Vite, TypeScript, Node.js with Express, SQLite locally, and a default mock provider. Phase 3 will turn that recommendation into a concrete specification.
 
-Phase 2 review completed on 2026-09-12; owner approval is pending. Deliverables include the repository overview, showcase overview, 19-section case study, four Mermaid diagram drafts, and confidentiality disclaimer. Repository-local memory records the branch preference and scope without reading or modifying global memory.
+Phase 2 review completed on 2026-09-12; owner approval is pending. Deliverables include the repository overview, showcase overview, 19-section case study, four Mermaid diagram drafts, and confidentiality disclaimer. Verification below covers the tracked deliverables only.
 
 Verification evidence:
 
-- Automated document checks passed across eight Markdown files: all 19 section headings appear in the requested order, seven owner placeholders use the exact requested text, and all 15 local Markdown links resolve inside this repository.
+- Automated document checks passed across six tracked Markdown files: all 19 section headings appear in the requested order, seven owner placeholders use the exact requested text, and all 14 local Markdown links resolve to tracked files inside this repository.
 - The four expected Mermaid blocks are present. Markdown fences and sequence control blocks are balanced; no trailing whitespace was found. These are structural checks, not full Mermaid syntax validation.
 - A limited credential-pattern check of authored Markdown found no matches. This is not a comprehensive secret scan; the final repository scan remains in Phase 6.
 - An independent read-only reviewer found no blocking issue in confidentiality framing, personal claims, proposed-versus-implemented distinctions, or workflow consistency.
@@ -70,3 +72,9 @@ The PR is a review checkpoint for the Phase 2 documentation. It does not certify
 Final staged-content verification passed for seven files (six Markdown documents and `.gitignore`): 14 links target files included in the PR, all 19 case-study sections and seven exact owner placeholders are present, and the four Mermaid blocks exist. A limited credential-pattern scan found no matches. Local agent memory is excluded, and the initial `main` commit contains no files. An independent final document review found no merge blockers for this documentation milestone. No application or full security evaluation was performed.
 
 2026-09-12: Opened [PR #1](https://github.com/swa34/ai-engineering-portfolio/pull/1) from `swa34/graduation-announcement-showcase` into `main` after committing and pushing the documentation. The PR is ready for owner review. Merging, Phase 3 approval, and deployment remain pending; no merge or deployment was performed.
+
+## PR review follow-up
+
+2026-09-12: Addressed all six inline review findings: restricted verification counts to tracked documents; aligned regeneration around a separate Submitted cycle using the existing consented snapshot; made human editing optional before approval; made the return to Submitted visible after provider failure; distinguished terminal rejection from a revision request; and labeled the root overview as an unfinished public draft. Added a dependency ignore rule. License selection remains an owner decision.
+
+Repeated document checks passed for six tracked Markdown files, 14 local links to tracked files, 19 numbered sections, seven exact placeholders, and four Mermaid blocks with balanced sequence controls. A second read-only review found no blocking consistency issues. Git inventory and every reachable commit contain no Codex configuration, agent configuration, or local memory files; `.Codex/`, `.codex/`, and `.agents/` are ignored and remain local only. GitHub diagram rendering is the remaining visual review check.

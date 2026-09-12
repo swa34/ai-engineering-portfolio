@@ -6,6 +6,8 @@ Professional case studies and independently created demonstrations of applied AI
 
 **Phase 2 draft — awaiting owner review. The working demonstration has not been implemented.**
 
+These public drafts are a work in progress, not a finished portfolio piece. Personal contributions and outcomes still require owner confirmation; their placeholders are intentionally visible during review.
+
 This proposed showcase explores structured drafting, validation against submitted facts, explicit human approval, and revision history using a fictional institution and fictional graduates.
 
 - [Showcase overview](case-studies/graduation-announcement-system/README.md)

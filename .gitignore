@@ -3,6 +3,9 @@
 .codex/
 .agents/
 
+# Local dependencies
+node_modules/
+
 # Credentials; sanitized examples may be tracked
 .env
 .env.*

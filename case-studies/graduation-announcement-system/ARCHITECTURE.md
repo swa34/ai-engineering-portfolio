@@ -13,25 +13,30 @@ flowchart TD
     C -->|No| D[Show actionable field errors]
     D --> B
     C -->|Yes| E[Preserve immutable source snapshot]
-    E --> F[Generate structured candidate with mock provider]
+    E --> S[Submitted: ready for an explicit generation attempt]
+    S -->|Start generation| F[Generate structured candidate with mock provider]
     F --> G{Provider response usable?}
-    G -->|Timeout or malformed output| H[Record safe failure and offer explicit retry]
-    H --> F
+    G -->|Timeout or malformed output| H[Record safe failure and return to Submitted]
+    H --> S
     G -->|Yes| I[Validate factual fields and narrative against snapshot]
     I --> J[Show source, generated draft, findings, and edits]
     J --> K{Human reviewer decision}
     K -->|Edit| L[Save a new human revision and revalidate]
     L --> J
     K -->|Request revision| M[Record reasons and prepare a new candidate]
-    M --> F
+    M -->|Explicit regeneration| F
     K -->|Reject| N[Record rejection]
     K -->|Approve| O{Authorized, current, consented, and passing?}
     O -->|No| J
     O -->|Yes| P[Atomically record approval and audit event]
     P --> Q[Preview or export approved version with fictional label]
+    P -->|Request regeneration using unchanged facts| R{Authorized and source consented?}
+    R -->|No| Q
+    R -->|Yes| T[Create separate Submitted cycle using existing snapshot; preserve approved artifact]
+    T --> S
 ```
 
-Audit events accompany submissions, generation attempts, revisions, decisions, and exports. The diagram highlights approval but does not imply that other actions lack auditing. Export is a local artifact handoff, not publication. Correcting source facts requires a new source snapshot and a newly reviewed candidate; retries reuse the existing immutable snapshot. Retry bounds and sensitive-error redaction will be specified in Phase 3.
+Audit events accompany submissions, generation attempts, revisions, decisions, and exports. The diagram highlights approval but does not imply that other actions lack auditing. Export is a local artifact handoff, not publication. A timeout or malformed response returns the current cycle to Submitted; an explicit retry starts generation with the same immutable snapshot. Regeneration after approval starts a separate Submitted cycle after authorization and consent checks, using the existing snapshot without contributor resubmission or re-freezing the facts. Correcting source facts instead starts at Draft and requires validation, submission, and a new immutable snapshot. Retry bounds and sensitive-error redaction will be specified in Phase 3.
 
 ## 2. Application architecture
 
@@ -78,6 +83,7 @@ The diagram shows intended responsibilities, not a set of microservices: these m
 ```mermaid
 stateDiagram-v2
     [*] --> Draft
+    [*] --> Submitted: New cycle for authorized regeneration using existing consented snapshot
     Draft --> Submitted: Validate facts and consent; freeze snapshot
     Submitted --> Generating: Start generation attempt
     Generating --> Submitted: Timeout or malformed response; record failure
@@ -96,12 +102,14 @@ stateDiagram-v2
     end note
     note right of Approved
         Approval binds to a source snapshot and content revision.
-        Regeneration creates a separate unapproved candidate.
+        Regeneration starts a separate cycle at Submitted using the same snapshot.
         This approved version and its history remain preserved.
     end note
 ```
 
-These are conceptual statuses for one review cycle. A request can retain an approved version while a separate candidate undergoes another review cycle. Regeneration after approval would begin a new cycle at Draft, reuse or explicitly replace the source snapshot, and require submission and review again. It would not move or overwrite the approved version shown here. Exact request-versus-version status storage belongs in Phase 3.
+These are conceptual statuses for one review cycle. The two entry paths distinguish an initial Draft from a separate Submitted cycle created by authorized regeneration using an existing consented snapshot. Regeneration after approval does not re-freeze the facts or require contributor resubmission; it creates a separate cycle that must complete generation, validation, and human review. The existing approved version remains unchanged, which is why regeneration is a new entry rather than a transition out of Approved. Corrected source facts must follow the Draft submission path to create a new snapshot. Exact request-versus-version status storage belongs in Phase 3.
+
+Rejected is terminal for that review cycle: the reviewer declines further work on it. Changes requested keeps the cycle open for revision and review. Pursuing content after rejection requires a new cycle; it does not reopen or alter the rejected record.
 
 UI labels would read “Needs review,” “Changes requested,” and “Ready for publication.” The last means an approved artifact is prepared for handoff; it does not assert actual publication. `Published` is intentionally excluded from the initial demo because no publication or external distribution integration is proposed.
 
@@ -147,7 +155,7 @@ sequenceDiagram
         end
     end
 
-    opt A structured candidate exists
+    opt Reviewer chooses to edit an existing structured candidate
         Reviewer->>UI: Edit candidate
         UI->>API: Save human revision against expected version
         API->>API: Check reviewer authorization and current version
@@ -155,6 +163,9 @@ sequenceDiagram
         V-->>API: Updated findings
         API->>DB: Save separate revision, findings, and audit event
         API-->>UI: Display human revision and validation result
+    end
+
+    opt Reviewer chooses to approve the current generated or human-edited revision
         Reviewer->>UI: Explicitly approve selected revision
         UI->>API: Approval request with expected revision
         API->>API: Check role, current revision, source consent, and validation
@@ -169,14 +180,18 @@ sequenceDiagram
 
     opt Regeneration requested after approval
         Reviewer->>UI: Request a new candidate
-        UI->>API: Start another review cycle
-        API->>API: Check authorization
-        API->>DB: Create separate unapproved candidate; preserve approved version
-        API-->>UI: New cycle must complete submission, generation, and review
+        UI->>API: Request regeneration using existing source snapshot
+        API->>API: Check authorization and source consent
+        alt Unauthorized or consent absent
+            API-->>UI: Deny regeneration; retain approved version
+        else Eligible for regeneration
+            API->>DB: Create separate Submitted cycle referencing same snapshot; audit action
+            API-->>UI: Approved version preserved; explicit generation and review required
+        end
     end
 ```
 
-Phase 3 must specify authorization failures for every mutation, concurrency conflicts, bounded provider retries, and stale generation responses. This conceptual sequence highlights the approval boundary; an unsuccessful check must never fall through to a write. Every human content revision would invalidate any previous validation result for that candidate, and approval would apply only to the checked revision.
+Phase 3 must specify authorization failures for every mutation, concurrency conflicts, bounded provider retries, and stale generation responses. This conceptual sequence highlights the approval boundary; an unsuccessful check must never fall through to a write. Editing is optional: an unchanged generated candidate can be approved if its current revision passes all checks. Every human content revision would invalidate any previous validation result for that candidate, and approval would apply only to the checked revision. The regeneration block reuses the submitted snapshot without contributor resubmission; source corrections require the separate Draft submission path described above.
 
 ## Review questions reserved for the specification
 
