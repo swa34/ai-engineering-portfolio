@@ -2,7 +2,7 @@
 
 **Phase 2 conceptual diagrams — not implemented or evaluated.** These independently proposed designs use only fictional demonstration data and do not document any private system. See the [disclaimer](DISCLAIMER.md) and [case-study draft](CASE_STUDY.md).
 
-The proposed stack is React/Vite, TypeScript, Node.js/Express, runtime schema validation, and SQLite locally. Phase 3 will define exact contracts, authorization mechanisms, storage constraints, and failure semantics. A PostgreSQL production path would need separate migration and integration verification.
+The proposed stack is React/Vite, TypeScript, Node.js/Express, runtime schema validation, and SQLite locally. The [Phase 3 technical specification](TECHNICAL_SPEC.md) now defines exact contracts, authorization mechanisms, storage constraints, and failure semantics. These diagrams remain conceptual; a PostgreSQL production path would need separate migration and integration verification.
 
 ## 1. End-to-end workflow
 
@@ -193,11 +193,11 @@ sequenceDiagram
 
 Phase 3 must specify authorization failures for every mutation, concurrency conflicts, bounded provider retries, and stale generation responses. This conceptual sequence highlights the approval boundary; an unsuccessful check must never fall through to a write. Editing is optional: an unchanged generated candidate can be approved if its current revision passes all checks. Every human content revision would invalidate any previous validation result for that candidate, and approval would apply only to the checked revision. The regeneration block reuses the submitted snapshot without contributor resubmission; source corrections require the separate Draft submission path described above.
 
-## Review questions reserved for the specification
+## Decisions resolved in the Phase 3 draft
 
-- How constrained should prose generation be to make independent factual validation defensible?
-- How should request status, candidate status, and the retained approved version be represented without ambiguity?
-- Which demo identity mechanism demonstrates server-side role enforcement while clearly stating its limitations?
-- Which sensitive-input checks, audit protections, and retention controls are practical to demonstrate locally?
+- Two controlled prose templates allow exact comparison of headline, body, and social content against submitted facts; arbitrary paraphrase cannot pass approval checks.
+- Requests group independently stored review cycles; immutable snapshots, revisions, validation runs, approvals, and artifacts preserve history.
+- Server-issued sessions for conspicuously simulated local roles demonstrate API authorization without claiming verified identity.
+- Pattern-based input screening, transactional application audit events, snapshot consent withdrawal, and whole-dataset reset define the local safeguards and their limits.
 
-These are design decisions for Phase 3, not requests for confidential information. No schema, API implementation, or working security guarantee is established by these diagrams.
+The [technical specification](TECHNICAL_SPEC.md) is authoritative for the proposed implementation contracts. In particular, submission and generation are separate explicit API actions; the conceptual sequence above compresses that handoff. Consent withdrawal and reset are detailed in the specification rather than added to these Phase 2 diagrams. No API implementation or working security guarantee is established by these drafts.
