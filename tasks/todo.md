@@ -137,7 +137,7 @@ The PR will describe the proposed architecture, API and storage contracts, const
 - [x] Separate structural tone checks from semantic findings and remove the unreachable length finding.
 - [x] Name the draft schema, enumerate nullability, and clarify server-created copied drafts and session-scoped replay.
 - [x] Extend existing evaluation cases, verify boundaries and cross-document consistency, and independently review the changes.
-- [ ] Commit and push the corrections to PR #2 and verify its head commit.
+- [x] Commit and push the corrections to PR #2 and verify its head commit.
 
 The shared resource table now defines provider and request byte caps sized for compact Unicode-escaped JSON, plus a read budget with headroom for two active pollers and ordinary navigation. Known template mismatches are semantic findings; unknown IDs and excessive field lengths fail schema validation. DraftSource explicitly enumerates nullable fields and the server-created copied-content exception. Receipt replay is limited to the issuing valid session, with expiry/reset and role replacement covered in the evaluation plan.
 
@@ -147,3 +147,5 @@ Review-update verification:
 - Budget arithmetic admits 120 attempt polls plus 60 ordinary reads per rolling minute; excess traffic remains subject to throttling and Retry-After. This is a workload calculation, not a measured application result.
 - All 48 local links resolve across ten tracked Markdown documents. Both JSON examples remain valid, all 44 evaluation rows remain unexecuted, all 19 case-study sections and seven placeholders remain intact, and the four Mermaid blocks remain unchanged.
 - Independent review found no blocking gap in the seven corrections. Its reset/receipt wording clarification was incorporated. Boundary/document checks and `git diff --check` pass; no application tests have been run.
+
+2026-09-12: Pushed review-correction commit `bc93bfe` to PR #2. GitHub readback confirmed that commit as the open PR's head. The seven reviewed points are addressed in the specification; implementation and merging remain pending approval.
